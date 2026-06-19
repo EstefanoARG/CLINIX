@@ -1,9 +1,42 @@
-function App() {
-  return (
-    <div>
-      <h1>CLINIX - Portal Publico</h1>
-    </div>
-  )
-}
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import theme from './theme';
+import { AuthProvider } from './store/AuthContext';
+import PublicLayout from './components/layout/PublicLayout';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import MedicosPage from './pages/medicos/MedicosPage';
+import SolicitarCitaPage from './pages/citas/SolicitarCitaPage';
+import MisReservasPage from './pages/citas/MisReservasPage';
 
-export default App
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/medicos" element={<MedicosPage />} />
+                <Route path="/solicitar-cita" element={<SolicitarCitaPage />} />
+                <Route path="/mis-reservas" element={<MisReservasPage />} />
+              </Route>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </LocalizationProvider>
+    </ThemeProvider>
+  );
+}
