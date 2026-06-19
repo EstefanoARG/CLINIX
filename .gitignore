@@ -27,3 +27,6 @@ Thumbs.db
 # SQL Server
 *.mdf
 *.ldf
+
+# opencode
+.opencode/

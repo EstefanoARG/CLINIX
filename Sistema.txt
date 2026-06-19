@@ -1,0 +1,341 @@
+Arquitectura recomendada: Clean Architecture (Hexagonal / Onion) + Microservicios (o modular monolith).
+
+Te sugiero un enfoque híbrido que empiece como un monolito modular bien estructurado, con la posibilidad de desacoplar ciertos módulos a microservicios si el crecimiento lo requiere.
+
+📐 Arquitectura propuesta (por capas):
+1. Presentación (UI)
+Portal Administrativo: Aplicación SPA (React, Angular o Vue.js) con un diseño robusto (Material UI, Ant Design). Ideal para el manejo de tablas, formularios y dashboards.
+
+Portal Público: Aplicación SPA separada, más ligera, enfocada en la experiencia de reserva de citas y visualización de información.
+
+API Gateway: Un punto único de entrada (por ejemplo, con Ocelot en .NET o Kong) que enruta las solicitudes a los servicios correspondientes y maneja autenticación centralizada (JWT).
+
+2. Aplicación / Servicios (Backend)
+Puedes implementar estos módulos como microservicios o como módulos dentro de un monolito con límites bien definidos (ensamblados / namespaces). La división natural es:
+
+Servicio de Autenticación y Usuarios (Auth Service)
+Maneja login, roles, recuperación de contraseñas, gestión de usuarios administrativos y pacientes (PACIENTE_AUTH). Incluye generación de tokens JWT y políticas de autorización.
+
+Servicio de Gestión de Pacientes
+CRUD de pacientes, gestión de historial clínico (HISTORIA_CLINICA), y documentos adjuntos. También expone endpoints para el portal público (registro, perfil).
+
+Servicio de Citas y Reservas
+Maneja la lógica de reservas web (RESERVA_WEB) y citas (CITA). Incluye disponibilidad de horarios de médicos (HORARIO_MEDICO), validación de conflictos, notificaciones por correo.
+
+Servicio de Hospitalización (Admisiones)
+Gestiona admisiones (ADMISION), habitaciones (HABITACION), asignación de enfermeros, altas, ocupación.
+
+Servicio de Personal Médico
+Gestiona médicos, enfermeros, especialidades, departamentos, ubicaciones físicas.
+
+Servicio de Dashboard y Reportes
+Agrega métricas de las vistas predefinidas (VW_DASHBOARD_METRICAS, VW_CITAS_HOY, etc.). Podría ser un servicio de solo lectura que consulta vistas materializadas o una base de datos de lectura.
+
+3. Capa de Dominio (Lógica de Negocio)
+Cada servicio tiene su propio modelo de dominio, independiente de la persistencia. Usa principios de Domain-Driven Design (DDD):
+
+Entidades ricas: Paciente, Cita, Admision, Medico, etc.
+
+Value Objects: Direccion, RangoHorario, EstadoCita.
+
+Repositorios (interfaces) para acceso a datos.
+
+Servicios de dominio para lógica compleja (ej: validación de disponibilidad de citas, asignación de habitaciones).
+
+4. Capa de Persistencia (Data Access)
+ORM: Entity Framework Core (si usas .NET), Hibernate (Java), o SQLAlchemy (Python). SQL Server como base de datos principal.
+
+Patrón Repository + Unit of Work para abstraer el acceso a datos.
+
+Read Models: Para el dashboard y consultas complejas, puedes usar vistas SQL o proyecciones con Dapper (si .NET) para mejor rendimiento.
+
+5. Infraestructura
+Base de datos: SQL Server (como en tu script). Puedes añadir un cache (Redis) para sesiones y disponibilidad de horarios.
+
+Mensajería: Usa un broker (RabbitMQ, Azure Service Bus) para eventos asíncronos: notificaciones de citas, actualización de dashboard, logs de auditoría.
+
+Almacenamiento de archivos: Blob Storage (Azure, AWS S3) para documentos adjuntos (DOCUMENTO_ADJUNTO).
+
+Logging y monitoreo: Serilog (o similar) + Application Insights / ELK stack.
+
+Contenedores: Docker, orquestación con Kubernetes (si escala) o docker-compose para desarrollo.
+
+6. Seguridad
+Autenticación: JWT con refresh tokens.
+
+Autorización: Basada en roles (Administrador, Médico, Enfermero, Recepcionista) y políticas más granulares (ej: un médico solo ve sus citas).
+
+Cifrado: Hash de contraseñas con bcrypt o Argon2.
+
+HTTPS en todas las comunicaciones.
+
+🧩 Diagrama de componentes de alto nivel:
+text
+[Portal Admin SPA] ──┐
+[Portal Public SPA] ──┼──> [API Gateway] ──> [Servicio Auth]
+                     │                     ├─> [Servicio Pacientes]
+                     │                     ├─> [Servicio Citas/Reservas]
+                     │                     ├─> [Servicio Admisiones]
+                     │                     ├─> [Servicio Personal]
+                     │                     └─> [Servicio Dashboard]
+                     │
+                     └──> [Event Bus] <───┘
+                                 │
+                                 └──> [Notificaciones (Email, SMS)]
+🛠️ Stack tecnológico sugerido (si eliges .NET):
+Backend: ASP.NET Core 8 / 9 (Web API)
+
+ORM: Entity Framework Core con SQL Server
+
+Autenticación: JWT + Identity (o personalizado)
+
+Frontend: React + TypeScript + Redux Toolkit + Material UI
+
+Pruebas: xUnit, Moq, FluentAssertions para backend; Jest + React Testing Library para frontend.
+
+CI/CD: Azure DevOps / GitHub Actions.
+
+📦 Módulos y responsabilidades detalladas:
+Módulo	Responsabilidad principal
+Auth	Login, registro de pacientes, gestión de roles y perfiles
+Pacientes	CRUD paciente, historial clínico, adjuntos
+Citas/Reservas	Creación de reservas, validación de disponibilidad, confirmación, citas programadas
+Admisiones	Ingreso, alta, asignación de habitaciones, enfermeros
+Personal	Gestión de médicos, enfermeros, especialidades, horarios
+Dashboard/Reportes	Métricas agregadas, gráficos, filtros
+🌐 Comunicación entre servicios:
+Síncrona: HTTP/REST o gRPC (para alta performance).
+
+Asíncrona: Eventos (ej: "CitaConfirmada", "PacienteAdmitido") para desacoplar y ejecutar acciones secundarias (notificaciones, actualización de dashboards).
+
+📈 Estrategia de base de datos:
+Base única o por servicio: Puedes comenzar con una base de datos compartida (como en tu script) y luego, si crece, migrar a bases de datos por servicio (CQRS con event sourcing opcional). Por ahora, una base SQL Server con esquemas separados (o prefijos de tablas) está bien.
+
+Índices: Asegúrate de crear índices para las consultas más frecuentes: citas por fecha, pacientes por DNI/clínica, disponibilidad de habitaciones, etc.
+
+Vistas materializadas: Para el dashboard, considera vistas materializadas o tablas de resumen actualizadas por triggers o eventos.
+
+🔄 Flujo de trabajo típico:
+Usuario (administrador) crea un médico, enfermera, especialidad, habitación.
+
+Paciente (portal público) solicita una cita → se genera una RESERVA_WEB.
+
+El administrador revisa y confirma → se convierte en CITA.
+
+Cuando el paciente asiste, se genera una ADMISION si requiere hospitalización.
+
+El médico registra HISTORIA_CLINICA con diagnóstico y tratamiento.
+
+Se adjuntan documentos (opcional).
+
+El dashboard actualiza métricas en tiempo real (usando eventos o consultas programadas).
+
+🧪 Consideraciones adicionales:
+Pruebas de integración: Asegúrate de probar los flujos críticos (reserva → cita → admisión → alta).
+
+Manejo de errores: Implementa un middleware global para capturar excepciones y devolver respuestas estandarizadas.
+
+Versionado de API: Usa versionado (ej: /api/v1/...) para evolucionar sin romper clientes.
+
+Documentación: Swagger/OpenAPI para documentar endpoints.
+
+Esta arquitectura te dará flexibilidad para escalar horizontalmente, mantener el código limpio y desacoplado, y adaptarte a cambios futuros sin reescribir todo.
+
+
+
+Sistema Integral de Gestión Hospitalaria con varios roles y módulos.
+
+¿Qué hace CLINIX?
+
+Tiene dos grandes áreas:
+
+1. Portal Público
+
+El paciente puede:
+
+Solicitar citas médicas online.
+Seleccionar especialidad.
+Elegir médico.
+Elegir horario disponible.
+Registrar sus datos personales.
+Aceptar términos y condiciones.
+
+Flujo:
+
+Inicio
+ ↓
+Solicitar cita
+ ↓
+Elegir especialidad
+ ↓
+Elegir doctor
+ ↓
+Elegir horario
+ ↓
+Enviar solicitud
+2. Portal Administrativo
+
+El administrador tiene acceso a:
+
+Dashboard
+Gestión de Doctores
+Gestión de Enfermeras
+Gestión de Pacientes
+Gestión de Habitaciones
+Gestión de Citas
+Gestión de Admisiones/Hospitalizaciones
+Módulos identificados
+Módulo de Autenticación
+Inicio de sesión
+Recuperación de contraseña
+Acceso administrador
+Módulo de Doctores
+
+Permite:
+
+Listar doctores
+Buscar
+Filtrar
+Crear
+Editar
+Eliminar
+
+Datos:
+
+Nombre
+Especialidad
+Ubicación
+Teléfono
+Correo electrónico
+Módulo de Enfermeras
+
+Permite:
+
+Registrar enfermeras
+Consultar
+Actualizar
+Eliminar
+
+Datos:
+
+Nombre
+Especialidad
+Ubicación
+Teléfono
+Email
+Módulo de Pacientes
+
+Permite:
+
+Registrar pacientes
+Buscar pacientes
+Visualizar información
+Admitir pacientes
+
+Datos:
+
+DNI
+Nombres
+Apellidos
+Dirección
+Fecha de nacimiento
+Género
+Correo
+Teléfono
+Módulo de Habitaciones
+
+Permite administrar:
+
+Número de habitación
+Departamento
+Tipo
+Capacidad
+Estado
+
+Ejemplos:
+
+UCI
+Pediatría
+Privada
+Postoperatorio
+Módulo de Citas
+
+Permite:
+
+Crear cita
+Asignar doctor
+Asignar especialidad
+Asignar horario
+Registrar observaciones
+
+Además almacena:
+
+Paciente
+Doctor
+Fecha
+Habitación asociada
+Módulo de Admisiones
+
+Este es uno de los módulos más importantes.
+
+Permite:
+
+Hospitalizar pacientes.
+Asignar doctor.
+Asignar enfermera.
+Asignar habitación.
+Registrar ingreso.
+Registrar alta médica.
+Historial del Paciente
+
+Cada paciente posee:
+
+Información personal.
+Historial de admisiones.
+Departamento.
+Doctor asignado.
+Fechas de atención.
+Habitación utilizada.
+Dashboard
+
+Muestra:
+
+Total de doctores.
+Total de enfermeras.
+Total de pacientes.
+Total de habitaciones.
+Pacientes recientemente admitidos.
+Doctores activos.
+Roles identificados
+Administrador
+
+Control total del sistema:
+
+Usuarios
+Citas
+Pacientes
+Habitaciones
+Admisiones
+Dashboard
+Doctor
+
+Puede:
+
+Ver sus pacientes.
+Consultar horarios.
+Gestionar atención médica.
+Enfermera
+
+Puede:
+
+Ver sesiones asignadas.
+Ver pacientes asignados.
+Paciente
+
+Puede:
+
+Solicitar citas.
+Ver médicos.
+Revisar reservas.
+
+

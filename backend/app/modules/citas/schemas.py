@@ -1,0 +1,103 @@
+from datetime import datetime, time
+from pydantic import BaseModel, Field
+
+
+class ReservaWebCreate(BaseModel):
+    paciente_id: int | None = None
+    nombre_solicitante: str = Field(..., min_length=2, max_length=150)
+    dni_solicitante: str = Field(..., min_length=8, max_length=20)
+    email_solicitante: str
+    telefono_solicitante: str | None = None
+    especialidad_id: int
+    medico_id: int | None = None
+    fecha_hora_deseada: datetime
+    motivo_consulta: str | None = None
+    acepta_terminos: bool = False
+
+
+class ReservaWebUpdate(BaseModel):
+    estado: str | None = None
+    observacion_admin: str | None = None
+
+
+class ReservaWebResponse(BaseModel):
+    reserva_id: int
+    paciente_id: int | None = None
+    nombre_solicitante: str
+    dni_solicitante: str
+    email_solicitante: str
+    telefono_solicitante: str | None = None
+    especialidad_id: int
+    medico_id: int | None = None
+    fecha_hora_deseada: datetime
+    motivo_consulta: str | None = None
+    estado: str
+    acepta_terminos: bool
+    cita_id: int | None = None
+    fecha_solicitud: datetime
+    fecha_respuesta: datetime | None = None
+    observacion_admin: str | None = None
+    especialidad_nombre: str | None = None
+    medico_nombre: str | None = None
+    paciente_nombre: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class CitaCreate(BaseModel):
+    paciente_id: int
+    medico_id: int
+    especialidad_id: int
+    ubicacion_id: int | None = None
+    reserva_id: int | None = None
+    fecha_hora: datetime
+    duracion_minutos: int = 30
+    motivo_consulta: str | None = None
+    observaciones: str | None = None
+
+
+class CitaUpdate(BaseModel):
+    fecha_hora: datetime | None = None
+    duracion_minutos: int | None = None
+    estado_cita: str | None = None
+    observaciones: str | None = None
+    ubicacion_id: int | None = None
+
+
+class CitaResponse(BaseModel):
+    cita_id: int
+    paciente_id: int
+    medico_id: int
+    especialidad_id: int
+    ubicacion_id: int | None = None
+    reserva_id: int | None = None
+    fecha_hora: datetime
+    duracion_minutos: int
+    estado_cita: str
+    motivo_consulta: str | None = None
+    observaciones: str | None = None
+    fecha_creacion: datetime
+    paciente_nombre: str | None = None
+    medico_nombre: str | None = None
+    especialidad_nombre: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class DisponibilidadRequest(BaseModel):
+    medico_id: int
+    fecha: str
+
+
+class DisponibilidadSlot(BaseModel):
+    hora_inicio: time
+    hora_fin: time
+    disponible: bool
+
+
+class DisponibilidadResponse(BaseModel):
+    medico_id: int
+    fecha: str
+    slots: list[DisponibilidadSlot]
