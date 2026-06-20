@@ -40,19 +40,29 @@ def init_seed_data():
             db.add(clinica)
             db.flush()
 
+        admin_user = db.query(Usuario).filter(Usuario.Email == "admin@clinix.com").first()
+        if not admin_user:
+            clinica = db.query(Clinica).first()
             admin_role = db.query(Role).filter(Role.NombreRole == "Administrador").first()
-            usuario = Usuario(
-                ClinicalID=clinica.ClinicalID,
-                RoleID=admin_role.RoleID,
-                Nombre="Admin",
-                Apellido="Sistema",
-                DNI="00000001",
-                Email="admin@clinix.com",
-                Telefono="+51 999 999 999",
-                PasswordHash=hash_password("admin123"),
-            )
-            db.add(usuario)
-            db.flush()
+            if clinica and admin_role:
+                usuario = Usuario(
+                    ClinicalID=clinica.ClinicalID,
+                    RoleID=admin_role.RoleID,
+                    Nombre="Admin",
+                    Apellido="Sistema",
+                    DNI="00000001",
+                    Email="admin@clinix.com",
+                    Telefono="+51 999 999 999",
+                    PasswordHash=hash_password("admin123"),
+                )
+                db.add(usuario)
+                db.flush()
+
+        usuarios = db.query(Usuario).filter(Usuario.PasswordHash.like("hash_pass_%")).all()
+        for user in usuarios:
+            if "admin" in user.PasswordHash:
+                user.PasswordHash = hash_password("admin123")
+        db.flush()
 
         db.commit()
     finally:

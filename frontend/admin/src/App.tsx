@@ -9,6 +9,10 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import BandejaRecepcion from './pages/recepcion/BandejaRecepcion';
+import PanelCuartos from './pages/habitaciones/PanelCuartos';
+import AdmisionCitas from './pages/citas/AdmisionCitas';
+import DepartamentosPage from './pages/departamentos/DepartamentosPage';
+import UbicacionesPage from './pages/ubicaciones/UbicacionesPage';
 
 function AppRoutes() {
   return (
@@ -20,6 +24,10 @@ function AppRoutes() {
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/bandeja" element={<BandejaRecepcion />} />
+          <Route path="/habitaciones" element={<PanelCuartos />} />
+          <Route path="/departamentos" element={<DepartamentosPage />} />
+          <Route path="/ubicaciones" element={<UbicacionesPage />} />
+          <Route path="/citas" element={<AdmisionCitas />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Route>
