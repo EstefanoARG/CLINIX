@@ -33,6 +33,9 @@ def _reserva_to_dict(r: ReservaWeb) -> dict:
         "dni_solicitante": r.DNISolicitante,
         "email_solicitante": r.EmailSolicitante,
         "telefono_solicitante": r.TelefonoSolicitante,
+        "direccion_solicitante": r.DireccionSolicitante,
+        "fecha_nacimiento_solicitante": r.FechaNacimientoSolicitante,
+        "genero_solicitante": r.GeneroSolicitante,
         "especialidad_id": r.EspecialidadID,
         "medico_id": r.MedicoID,
         "fecha_hora_deseada": r.FechaHoraDeseada,
@@ -116,13 +119,20 @@ class ReservaService:
         return _reserva_to_dict(self._get_reserva_orm(reserva_id))
 
     def create(self, data: ReservaWebCreate) -> dict:
+        nombre_completo = data.nombre_solicitante
+        if data.apellidos_solicitante:
+            nombre_completo = f"{data.nombre_solicitante} {data.apellidos_solicitante}"
+
         domain = ReservaWebDomain(
             reserva_id=None,
             paciente_id=data.paciente_id,
-            nombre_solicitante=data.nombre_solicitante,
+            nombre_solicitante=nombre_completo,
             dni_solicitante=data.dni_solicitante,
             email_solicitante=data.email_solicitante,
             telefono_solicitante=data.telefono_solicitante,
+            direccion_solicitante=data.direccion_solicitante,
+            fecha_nacimiento_solicitante=data.fecha_nacimiento_solicitante,
+            genero_solicitante=data.genero_solicitante,
             especialidad_id=data.especialidad_id,
             medico_id=data.medico_id,
             fecha_hora_deseada=data.fecha_hora_deseada,
@@ -132,18 +142,21 @@ class ReservaService:
         domain.validar_terminos()
         saved = self.uow.reservas.save(domain)
         self.uow.session.commit()
-        self.uow.session.refresh(
-            self.db.query(ReservaWeb).filter(ReservaWeb.ReservaID == saved.reserva_id).first()
-        )
-        registrar_auditoria(self.db, None, "CREAR_RESERVA",
-                            f"Reserva web creada para {saved.nombre_solicitante}",
-                            "RESERVA_WEB", saved.reserva_id)
-        publish(ReservaCreada(saved.reserva_id, {
-            "nombre": saved.nombre_solicitante,
-            "email": saved.email_solicitante,
-            "especialidad_id": saved.especialidad_id,
-            "fecha": str(saved.fecha_hora_deseada),
-        }))
+        try:
+            registrar_auditoria(self.db, None, "CREAR_RESERVA",
+                                f"Reserva web creada para {saved.nombre_solicitante}",
+                                "RESERVA_WEB", saved.reserva_id)
+        except Exception:
+            pass
+        try:
+            publish(ReservaCreada(saved.reserva_id, {
+                "nombre": saved.nombre_solicitante,
+                "email": saved.email_solicitante,
+                "especialidad_id": saved.especialidad_id,
+                "fecha": str(saved.fecha_hora_deseada),
+            }))
+        except Exception:
+            pass
         return self.get(saved.reserva_id)
 
     def update(self, reserva_id: int, data: ReservaWebUpdate) -> dict:
@@ -154,9 +167,14 @@ class ReservaService:
             ReservaMapper.update_orm(domain, orm)
         if data.observacion_admin is not None:
             orm.ObservacionAdmin = data.observacion_admin
-        orm.FechaRespuesta = datetime.now()
-        self.db.commit()
-        self.db.refresh(orm)
+        if data.estado is not None:
+            orm.FechaRespuesta = datetime.now()
+        try:
+            self.db.commit()
+            self.db.refresh(orm)
+        except Exception:
+            self.db.rollback()
+            raise
         registrar_auditoria(self.db, None, "ACTUALIZAR_RESERVA",
                             f"Reserva {reserva_id} actualizada a estado {orm.Estado}",
                             "RESERVA_WEB", reserva_id)
@@ -170,40 +188,67 @@ class ReservaService:
                             f"Reserva {reserva_id} eliminada",
                             "RESERVA_WEB", reserva_id)
 
+    def rechazar(self, reserva_id: int, motivo_rechazo: str) -> dict:
+        try:
+            return self.update(reserva_id, ReservaWebUpdate(
+                estado="Rechazada",
+                observacion_admin=motivo_rechazo,
+            ))
+        except Exception:
+            self.db.rollback()
+            raise
+
     def convert_to_cita(self, reserva_id: int, ubicacion_id: int | None = None,
-                        observaciones: str | None = None) -> dict:
+                        observaciones: str | None = None, clinical_id: int = 1) -> dict:
         reserva = self._get_reserva_orm(reserva_id)
         if reserva.Estado != "Pendiente":
             raise ConflictError("Only pending reservations can be converted")
         if not reserva.MedicoID:
             raise ConflictError("Reservation must have a doctor assigned")
-        if not reserva.PacienteID:
-            paciente = self.db.query(Paciente).filter(
-                Paciente.DNI == reserva.DNISolicitante,
-                Paciente.Email == reserva.EmailSolicitante,
-            ).first()
-            if not paciente:
-                raise NotFoundError("No matching patient found for this reservation")
-            reserva.PacienteID = paciente.PacienteID
 
-        cita = Cita(
-            PacienteID=reserva.PacienteID,
-            MedicoID=reserva.MedicoID,
-            EspecialidadID=reserva.EspecialidadID,
-            UbicacionID=ubicacion_id,
-            ReservaID=reserva.ReservaID,
-            FechaHora=reserva.FechaHoraDeseada,
-            MotivoConsulta=reserva.MotivoConsulta,
-            Observaciones=observaciones,
-        )
-        self.db.add(cita)
-        self.db.flush()
+        try:
+            if not reserva.PacienteID:
+                paciente = self.db.query(Paciente).filter(
+                    Paciente.DNI == reserva.DNISolicitante,
+                ).first()
+                if not paciente:
+                    nombre_partes = reserva.NombreSolicitante.split(" ", 1)
+                    paciente = Paciente(
+                        ClinicalID=clinical_id,
+                        DNI=reserva.DNISolicitante,
+                        Nombre=nombre_partes[0],
+                        Apellido=nombre_partes[1] if len(nombre_partes) > 1 else "",
+                        Email=reserva.EmailSolicitante,
+                        Telefono=reserva.TelefonoSolicitante,
+                        Direccion=reserva.DireccionSolicitante,
+                        FechaNacimiento=reserva.FechaNacimientoSolicitante,
+                        Genero=reserva.GeneroSolicitante,
+                    )
+                    self.db.add(paciente)
+                    self.db.flush()
+                reserva.PacienteID = paciente.PacienteID
 
-        reserva.CitaID = cita.CitaID
-        reserva.Estado = "Convertida"
-        reserva.FechaRespuesta = datetime.now()
-        self.db.commit()
-        self.db.refresh(cita)
+            cita = Cita(
+                PacienteID=reserva.PacienteID,
+                MedicoID=reserva.MedicoID,
+                EspecialidadID=reserva.EspecialidadID,
+                UbicacionID=ubicacion_id,
+                ReservaID=reserva.ReservaID,
+                FechaHora=reserva.FechaHoraDeseada,
+                MotivoConsulta=reserva.MotivoConsulta,
+                Observaciones=observaciones,
+            )
+            self.db.add(cita)
+            self.db.flush()
+
+            reserva.CitaID = cita.CitaID
+            reserva.Estado = "Convertida"
+            reserva.FechaRespuesta = datetime.now()
+            self.db.commit()
+            self.db.refresh(cita)
+        except Exception:
+            self.db.rollback()
+            raise
 
         registrar_auditoria(self.db, None, "CONVERTIR_RESERVA",
                             f"Reserva {reserva_id} convertida a cita {cita.CitaID}",

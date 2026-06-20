@@ -13,6 +13,9 @@ class ReservaMapper:
             dni_solicitante=o.DNISolicitante,
             email_solicitante=o.EmailSolicitante,
             telefono_solicitante=o.TelefonoSolicitante,
+            direccion_solicitante=o.DireccionSolicitante,
+            fecha_nacimiento_solicitante=o.FechaNacimientoSolicitante,
+            genero_solicitante=o.GeneroSolicitante,
             especialidad_id=o.EspecialidadID,
             medico_id=o.MedicoID,
             fecha_hora_deseada=o.FechaHoraDeseada,
@@ -34,6 +37,9 @@ class ReservaMapper:
             DNISolicitante=d.dni_solicitante,
             EmailSolicitante=d.email_solicitante,
             TelefonoSolicitante=d.telefono_solicitante,
+            DireccionSolicitante=d.direccion_solicitante,
+            FechaNacimientoSolicitante=d.fecha_nacimiento_solicitante,
+            GeneroSolicitante=d.genero_solicitante,
             EspecialidadID=d.especialidad_id,
             MedicoID=d.medico_id,
             FechaHoraDeseada=d.fecha_hora_deseada,
@@ -53,6 +59,9 @@ class ReservaMapper:
         o.DNISolicitante = d.dni_solicitante
         o.EmailSolicitante = d.email_solicitante
         o.TelefonoSolicitante = d.telefono_solicitante
+        o.DireccionSolicitante = d.direccion_solicitante
+        o.FechaNacimientoSolicitante = d.fecha_nacimiento_solicitante
+        o.GeneroSolicitante = d.genero_solicitante
         o.EspecialidadID = d.especialidad_id
         o.MedicoID = d.medico_id
         o.FechaHoraDeseada = d.fecha_hora_deseada

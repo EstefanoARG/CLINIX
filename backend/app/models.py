@@ -142,7 +142,7 @@ class LogAuditoria(Base):
     __tablename__ = "LOG_AUDITORIA"
 
     LogID = Column(Integer, primary_key=True, autoincrement=True)
-    UsuarioID = Column(Integer, ForeignKey("USUARIO.UsuarioID"), nullable=False)
+    UsuarioID = Column(Integer, ForeignKey("USUARIO.UsuarioID"), nullable=True)
     Accion = Column(String(100), nullable=False)
     Descripcion = Column(String(500), nullable=True)
     TablaAfectada = Column(String(50), nullable=True)
@@ -264,10 +264,13 @@ class ReservaWeb(Base):
     ReservaID = Column(Integer, primary_key=True, autoincrement=True)
     PacienteID = Column(Integer, ForeignKey("PACIENTE.PacienteID"), nullable=True)
     CitaID = Column(Integer, ForeignKey("CITA.CitaID"), nullable=True)
-    NombreSolicitante = Column(String(150), nullable=False)
+    NombreSolicitante = Column(String(250), nullable=False)
     DNISolicitante = Column(String(20), nullable=False)
     EmailSolicitante = Column(String(100), nullable=False)
     TelefonoSolicitante = Column(String(20), nullable=True)
+    DireccionSolicitante = Column(String(250), nullable=True)
+    FechaNacimientoSolicitante = Column(Date, nullable=True)
+    GeneroSolicitante = Column(String(20), nullable=True)
     EspecialidadID = Column(Integer, ForeignKey("ESPECIALIDAD.EspecialidadID"), nullable=False)
     MedicoID = Column(Integer, ForeignKey("MEDICO.MedicoID"), nullable=True)
     FechaHoraDeseada = Column(DateTime, nullable=False)
@@ -285,6 +288,7 @@ class ReservaWeb(Base):
 
     __table_args__ = (
         CheckConstraint("Estado IN ('Pendiente', 'Confirmada', 'Rechazada', 'Convertida', 'Cancelada')", name="CK_RESERVA_ESTADO"),
+        CheckConstraint("GeneroSolicitante IN ('Masculino', 'Femenino', 'Otro')", name="CK_RESERVA_GENERO"),
     )
 
 

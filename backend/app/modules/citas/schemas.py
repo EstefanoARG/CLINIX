@@ -4,10 +4,14 @@ from pydantic import BaseModel, Field
 
 class ReservaWebCreate(BaseModel):
     paciente_id: int | None = None
-    nombre_solicitante: str = Field(..., min_length=2, max_length=150)
+    nombre_solicitante: str = Field(..., min_length=2, max_length=250)
+    apellidos_solicitante: str | None = Field(None, max_length=250)
     dni_solicitante: str = Field(..., min_length=8, max_length=20)
     email_solicitante: str
     telefono_solicitante: str | None = None
+    direccion_solicitante: str | None = Field(None, max_length=250)
+    fecha_nacimiento_solicitante: datetime | None = None
+    genero_solicitante: str | None = None
     especialidad_id: int
     medico_id: int | None = None
     fecha_hora_deseada: datetime
@@ -27,6 +31,9 @@ class ReservaWebResponse(BaseModel):
     dni_solicitante: str
     email_solicitante: str
     telefono_solicitante: str | None = None
+    direccion_solicitante: str | None = None
+    fecha_nacimiento_solicitante: datetime | None = None
+    genero_solicitante: str | None = None
     especialidad_id: int
     medico_id: int | None = None
     fecha_hora_deseada: datetime
@@ -84,6 +91,15 @@ class CitaResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ConvertirPayload(BaseModel):
+    ubicacion_id: int
+    observaciones: str | None = None
+
+
+class RechazarPayload(BaseModel):
+    motivo_rechazo: str = Field(..., min_length=1, max_length=500)
 
 
 class DisponibilidadRequest(BaseModel):

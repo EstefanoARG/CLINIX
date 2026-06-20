@@ -19,6 +19,9 @@ class ReservaWeb:
     medico_id: Optional[int]
     fecha_hora_deseada: datetime
     motivo_consulta: Optional[str]
+    direccion_solicitante: Optional[str] = None
+    fecha_nacimiento_solicitante: Optional[datetime] = None
+    genero_solicitante: Optional[str] = None
     estado: str = EstadoReserva.PENDIENTE.value
     acepta_terminos: bool = False
     fecha_solicitud: Optional[datetime] = None

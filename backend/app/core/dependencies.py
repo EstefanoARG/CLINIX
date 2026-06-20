@@ -21,10 +21,11 @@ def get_current_user(
     payload = decode_access_token(token)
     if payload is None:
         raise CredentialsError("Invalid or expired token")
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise CredentialsError("Token missing subject")
-    user = db.query(Usuario).filter(Usuario.UsuarioID == int(user_id)).first()
+    try:
+        user_id = int(payload.get("sub"))
+    except (ValueError, TypeError):
+        raise CredentialsError("Invalid or missing token subject")
+    user = db.query(Usuario).filter(Usuario.UsuarioID == user_id).first()
     if not user or not user.Activo:
         raise CredentialsError("User not found or inactive")
     return user

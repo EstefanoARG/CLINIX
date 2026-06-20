@@ -74,6 +74,13 @@ class HistoriaClinicaUpdate(BaseModel):
     observaciones: str | None = None
 
 
+class HistoriaClinicaMedico(BaseModel):
+    medico_id: int
+    nombre: str | None = None
+    apellido: str | None = None
+    especialidad: str | None = None
+
+
 class HistoriaClinicaResponse(BaseModel):
     historial_id: int
     paciente_id: int
@@ -86,6 +93,8 @@ class HistoriaClinicaResponse(BaseModel):
     prescripcion: str | None = None
     observaciones: str | None = None
     fecha_registro: datetime
+    medico: HistoriaClinicaMedico | None = None
+    documentos: list[DocumentoAdjuntoResponse] | None = None
 
     class Config:
         from_attributes = True

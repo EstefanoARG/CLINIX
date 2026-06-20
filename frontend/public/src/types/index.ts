@@ -55,9 +55,13 @@ export interface DisponibilidadResponse {
 // --- Reserva Web ---
 export interface ReservaWebCreate {
   nombre_solicitante: string;
+  apellidos_solicitante?: string;
   dni_solicitante: string;
   email_solicitante: string;
   telefono_solicitante?: string;
+  direccion_solicitante?: string;
+  fecha_nacimiento_solicitante?: string;
+  genero_solicitante?: string;
   especialidad_id: number;
   medico_id?: number;
   fecha_hora_deseada: string;
@@ -70,10 +74,16 @@ export interface ReservaWeb {
   nombre_solicitante: string;
   dni_solicitante: string;
   email_solicitante: string;
+  telefono_solicitante?: string;
+  direccion_solicitante?: string;
+  fecha_nacimiento_solicitante?: string;
+  genero_solicitante?: string;
   especialidad_id: number;
   medico_id: number | null;
   fecha_hora_deseada: string;
   estado: string;
   acepta_terminos: boolean;
   fecha_solicitud: string;
+  fecha_respuesta?: string;
+  observacion_admin?: string;
 }
