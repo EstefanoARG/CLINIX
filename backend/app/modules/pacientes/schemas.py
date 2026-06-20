@@ -81,25 +81,6 @@ class HistoriaClinicaMedico(BaseModel):
     especialidad: str | None = None
 
 
-class HistoriaClinicaResponse(BaseModel):
-    historial_id: int
-    paciente_id: int
-    medico_id: int
-    cita_id: int | None = None
-    admision_id: int | None = None
-    anamnesis: str | None = None
-    diagnostico: str
-    tratamiento: str
-    prescripcion: str | None = None
-    observaciones: str | None = None
-    fecha_registro: datetime
-    medico: HistoriaClinicaMedico | None = None
-    documentos: list[DocumentoAdjuntoResponse] | None = None
-
-    class Config:
-        from_attributes = True
-
-
 class DocumentoAdjuntoCreate(BaseModel):
     blob_url: str = Field(..., max_length=500)
     nombre_archivo: str = Field(..., max_length=200)
@@ -118,6 +99,25 @@ class DocumentoAdjuntoResponse(BaseModel):
     tamano_kb: int | None = None
     descripcion: str | None = None
     fecha_subida: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class HistoriaClinicaResponse(BaseModel):
+    historial_id: int
+    paciente_id: int
+    medico_id: int
+    cita_id: int | None = None
+    admision_id: int | None = None
+    anamnesis: str | None = None
+    diagnostico: str
+    tratamiento: str
+    prescripcion: str | None = None
+    observaciones: str | None = None
+    fecha_registro: datetime
+    medico: HistoriaClinicaMedico | None = None
+    documentos: list[DocumentoAdjuntoResponse] | None = None
 
     class Config:
         from_attributes = True

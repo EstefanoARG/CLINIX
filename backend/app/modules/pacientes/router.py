@@ -101,7 +101,7 @@ def upload_documento(
     db: DbSession,
     file: UploadFile = File(...),
     descripcion: str | None = None,
-    current_user = Depends(require_role(["Administrador", "Médico"])),
+    current_user = require_role(["Administrador", "Médico"]),
 ):
     service = PacienteService(db)
     return service.upload_documento(paciente_id, historial_id, file, descripcion, current_user.UsuarioID)
