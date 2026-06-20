@@ -135,7 +135,7 @@ GO
 -- Registro de acciones críticas para trazabilidad.
 CREATE TABLE LOG_AUDITORIA (
     LogID       INT           IDENTITY(1,1) PRIMARY KEY,
-    UsuarioID   INT           NOT NULL,
+    UsuarioID   INT           NULL,
     Accion      VARCHAR(100)  NOT NULL,   -- 'LOGIN', 'CREATE_CITA', 'DELETE_PACIENTE', etc.
     Descripcion VARCHAR(500)  NULL,
     TablaAfectada VARCHAR(50) NULL,
@@ -251,10 +251,14 @@ CREATE TABLE RESERVA_WEB (
     ReservaID        INT          IDENTITY(1,1) PRIMARY KEY,
     -- Datos del solicitante (puede ser paciente registrado o no)
     PacienteID       INT          NULL,          -- NULL si aún no está registrado
-    NombreSolicitante VARCHAR(150) NOT NULL,
+    NombreSolicitante VARCHAR(250) NOT NULL,
     DNISolicitante   VARCHAR(20)  NOT NULL,
     EmailSolicitante VARCHAR(100) NOT NULL,
     TelefonoSolicitante VARCHAR(20) NULL,
+    DireccionSolicitante VARCHAR(250) NULL,      -- Para crear PACIENTE al convertir
+    FechaNacimientoSolicitante DATE NULL,        -- Para crear PACIENTE al convertir
+    GeneroSolicitante VARCHAR(20) NULL
+        CONSTRAINT CK_RESERVA_GENERO CHECK (GeneroSolicitante IN ('Masculino', 'Femenino', 'Otro', NULL)),
     -- Datos de la solicitud
     EspecialidadID   INT          NOT NULL,
     MedicoID         INT          NULL,          -- Puede no elegir médico específico
@@ -532,168 +536,5 @@ WHERE c.Activo = 1;
 GO
 
 -- ============================================================================
--- SECCIÓN 11: DATOS DE PRUEBA
--- ============================================================================
-
--- 11.1 Clínicas
-INSERT INTO CLINICA (Nombre, RUC, Direccion, Telefono, Email, PlanSuscripcion) VALUES
-('Clínica San Pablo',       '20123456789', 'Av. Guardia Civil 337, San Borja, Lima',       '(01) 224-2224', 'contacto@sanpablo.com.pe',   'Premium'),
-('Clínica Internacional',   '20987654321', 'Av. Garcilazo de la Vega 1420, Lima Centro',   '(01) 619-6161', 'contacto@clinicaint.com.pe',  'Standard'),
-('Clínica El Golf',         '20456789123', 'Av. Aurelio Miro Quesada 1030, San Isidro',    '(01) 264-3320', 'contacto@clinicaelgolf.com',  'Basic');
-GO
-
--- 11.2 Especialidades
-INSERT INTO ESPECIALIDAD (NombreEspecialidad, Descripcion) VALUES
-('Cardiología',         'Diagnóstico y tratamiento de enfermedades del corazón'),
-('Neurología',          'Diagnóstico y tratamiento de enfermedades del sistema nervioso'),
-('Pediatría General',   'Atención médica para niños y adolescentes'),
-('Traumatología',       'Diagnóstico y tratamiento del sistema músculo-esquelético'),
-('Ginecología',         'Salud del sistema reproductor femenino'),
-('Oncología',           'Diagnóstico y tratamiento del cáncer'),
-('Medicina General',    'Atención primaria y preventiva');
-GO
-
--- 11.3 Roles
-INSERT INTO ROLE (NombreRole) VALUES
-('Administrador'),
-('Médico'),
-('Enfermero'),
-('Recepcionista');
-GO
-
--- 11.4 Departamentos
-INSERT INTO DEPARTAMENTO (ClinicalID, Nombre, Descripcion) VALUES
-(1, 'Cardiovascular',   'Área de cardiología e intervención cardíaca'),
-(1, 'Neurología',       'Área de enfermedades neurológicas'),
-(1, 'Pediatría',        'Área de atención pediátrica'),
-(2, 'Traumatología',    'Área de cirugía y trauma ortopédico'),
-(2, 'Ginecología',      'Área de salud femenina'),
-(3, 'Medicina General', 'Consultas generales y emergencias menores');
-GO
-
--- 11.5 Ubicaciones físicas
-INSERT INTO UBICACION_FISICA (DepartamentoID, Nombre, Tipo, Piso) VALUES
-(1, 'Consultorio 101',        'Consultorio', '1'),
-(1, 'Sala de Operaciones A',  'Operaciones', '2'),
-(2, 'Consultorio 201',        'Consultorio', '2'),
-(3, 'Consultorio Pediatría 1','Consultorio', '1'),
-(3, 'Emergencias Pediátricas','Emergencias', '1'),
-(4, 'Consultorio Trauma 1',   'Consultorio', '3'),
-(5, 'Consultorio Gine 1',     'Consultorio', '3'),
-(6, 'Consultorio MG 1',       'Consultorio', '1');
-GO
-
--- 11.6 Habitaciones
-INSERT INTO HABITACION (DepartamentoID, Numero, Piso, Tipo, Capacidad, Estado) VALUES
-(1, '6025', '6', 'UCI',       2, 'Disponible'),
-(1, '6026', '6', 'Privado',   1, 'Ocupada'),
-(1, '6027', '6', 'Privado',   1, 'Disponible'),
-(3, '101',  '1', 'Pediatria', 4, 'Disponible'),
-(3, '102',  '1', 'Neonatal',  2, 'Disponible'),
-(4, '301',  '3', 'Post-op',   4, 'Mantenimiento'),
-(4, '302',  '3', 'Compartido',2, 'Disponible'),
-(5, '401',  '4', 'Privado',   1, 'Disponible');
-GO
-
--- 11.7 Usuarios (personal de la clínica)
-INSERT INTO USUARIO (ClinicalID, RoleID, UbicacionID, Nombre, Apellido, DNI, Email, Telefono, PasswordHash) VALUES
-(1, 1, NULL, 'Carlos',   'Mendoza Ríos',   '40123456', 'carlos.admin@sanpablo.com',        '999111222', 'hash_pass_admin_1'),
-(1, 2, 1,    'Alberto',  'Rivera Salas',   '40234567', 'alberto.rivera@sanpablo.com',       '999222333', 'hash_pass_med_1'),
-(1, 2, 3,    'Patricia', 'Vega Montes',    '40345678', 'patricia.vega@sanpablo.com',        '999333444', 'hash_pass_med_2'),
-(1, 3, 2,    'María',    'Gómez Paredes',  '40456789', 'maria.gomez@sanpablo.com',          '999444555', 'hash_pass_enf_1'),
-(1, 4, 1,    'Roberto',  'Sánchez Díaz',   '40567890', 'roberto.sanchez@sanpablo.com',      '999555666', 'hash_pass_rec_1'),
-(2, 1, NULL, 'Sandra',   'Flores Huamán',  '41123456', 'sandra.admin@clinicaint.com',       '998111222', 'hash_pass_admin_2'),
-(2, 2, 6,    'Elena',    'Torres Cabrera', '41234567', 'elena.torres@clinicaint.com',       '998222333', 'hash_pass_med_3'),
-(2, 3, 6,    'Jorge',    'Quispe Luna',    '41345678', 'jorge.quispe@clinicaint.com',       '998333444', 'hash_pass_enf_2');
-GO
-
--- 11.8 Médicos
-INSERT INTO MEDICO (UsuarioID, EspecialidadID, DepartamentoID, NumeroColegiatura) VALUES
-(2, 1, 1, 'CMP-45678'),   -- Dr. Alberto Rivera → Cardiología, Cardiovascular (Clinica 1)
-(3, 2, 2, 'CMP-56789'),   -- Dra. Patricia Vega  → Neurología, Neurología (Clinica 1)
-(7, 3, 5, 'CMP-78912');   -- Dra. Elena Torres   → Ginecología, Ginecología (Clinica 2)
-GO
-
--- 11.9 Horarios de médicos
-INSERT INTO HORARIO_MEDICO (MedicoID, DiaSemana, HoraInicio, HoraFin, IntervaloCitas) VALUES
-(1, 1, '08:00', '12:00', 30),  -- Dr. Rivera: Lunes 8-12
-(1, 3, '08:00', '12:00', 30),  -- Dr. Rivera: Miércoles 8-12
-(1, 5, '08:00', '12:00', 30),  -- Dr. Rivera: Viernes 8-12
-(2, 2, '14:00', '18:00', 30),  -- Dra. Vega: Martes 14-18
-(2, 4, '14:00', '18:00', 30),  -- Dra. Vega: Jueves 14-18
-(3, 1, '09:00', '13:00', 30),  -- Dra. Torres: Lunes 9-13
-(3, 2, '09:00', '13:00', 30);  -- Dra. Torres: Martes 9-13
-GO
-
--- 11.10 Enfermeros
-INSERT INTO ENFERMERO (UsuarioID, DepartamentoID, NumeroLicencia, Turno) VALUES
-(4, 1, 'CEP-12345', 'Mañana'),   -- María Gómez → Cardiovascular
-(8, 4, 'CEP-67890', 'Tarde');    -- Jorge Quispe → Traumatología
-GO
-
--- 11.11 Pacientes
-INSERT INTO PACIENTE (ClinicalID, DNI, Nombre, Apellido, FechaNacimiento, Genero, Direccion, Telefono, Email, GrupoSanguineo, Alergias) VALUES
-(1, '44556677', 'Juan',     'Pérez García',    '1980-03-15', 'Masculino', 'Jr. Las Flores 234, Miraflores', '987654321', 'juan.perez@gmail.com',    'O+',  'Penicilina'),
-(1, '88776655', 'Ana',      'Martínez López',  '1992-07-22', 'Femenino',  'Av. Brasil 890, Jesús María',    '976543210', 'ana.martinez@gmail.com',  'A+',  NULL),
-(1, '55443322', 'Carlos',   'Herrera Pinto',   '1975-11-05', 'Masculino', 'Calle Los Pinos 12, Surco',      '965432109', 'carlos.herrera@gmail.com','B+',  'Aspirina'),
-(2, '66778899', 'Lucía',    'Delgado Ruiz',    '1988-04-10', 'Femenino',  'Av. Universitaria 567, SMP',     '954321098', 'lucia.delgado@gmail.com', 'AB-', NULL),
-(2, '11223344', 'Miguel',   'Castro Vargas',   '2010-08-30', 'Masculino', 'Jr. Lima 456, Callao',           '943210987', NULL,                      'O-',  'Ibuprofeno');
-GO
-
--- 11.12 Autenticación del portal de pacientes
-INSERT INTO PACIENTE_AUTH (PacienteID, Email, PasswordHash) VALUES
-(1, 'juan.perez@gmail.com',    'hash_paciente_1'),
-(2, 'ana.martinez@gmail.com',  'hash_paciente_2'),
-(3, 'carlos.herrera@gmail.com','hash_paciente_3'),
-(4, 'lucia.delgado@gmail.com', 'hash_paciente_4');
-GO
-
--- 11.13 Reservas web (portal público)
-INSERT INTO RESERVA_WEB (PacienteID, NombreSolicitante, DNISolicitante, EmailSolicitante, TelefonoSolicitante, EspecialidadID, MedicoID, FechaHoraDeseada, MotivoConsulta, Estado, AceptaTerminos) VALUES
-(1, 'Juan Pérez García',   '44556677', 'juan.perez@gmail.com',    '987654321', 1, 1, '2026-06-25 09:00:00', 'Dolor en el pecho al hacer ejercicio',     'Pendiente',   1),
-(4, 'Lucía Delgado Ruiz',  '66778899', 'lucia.delgado@gmail.com', '954321098', 5, 3, '2026-06-26 10:00:00', 'Control ginecológico de rutina',            'Confirmada',  1),
-(NULL, 'Pedro Ríos Cano',  '99887766', 'pedro.rios@outlook.com',  '932109876', 7, NULL,'2026-06-27 11:00:00','Dolor de cabeza frecuente y mareos',       'Pendiente',   1);
-GO
-
--- 11.14 Citas
-INSERT INTO CITA (PacienteID, MedicoID, EspecialidadID, UbicacionID, ReservaID, FechaHora, DuracionMinutos, EstadoCita, MotivoConsulta, CreadoPorUsuarioID) VALUES
-(1, 1, 1, 1, NULL, '2026-06-18 10:00:00', 30, 'Programada', 'Revisión cardiológica anual',                1),
-(2, 1, 1, 1, NULL, '2026-06-18 10:30:00', 30, 'Programada', 'Seguimiento hipertensión',                   1),
-(3, 2, 2, 3, NULL, '2026-06-19 14:00:00', 30, 'Programada', 'Evaluación neurológica por cefaleas',        5),
-(4, 3, 5, 7, 2,   '2026-06-26 10:00:00', 30, 'Confirmada', 'Control ginecológico de rutina',              6);
-GO
-
--- 11.15 Admisiones activas
-INSERT INTO ADMISION (PacienteID, MedicoID, EnfermeroID, HabitacionID, CitaID, FechaIngreso, MotivoIngreso, DiagnosticoIngreso, Estado, CreadoPorUsuarioID) VALUES
-(1, 1, 1, 2, 1, '2026-06-16 14:30:00', 'Dolor torácico agudo con elevación del ST', 'Infarto agudo de miocardio anterolateral', 'Activa', 1),
-(3, 2, NULL, 7, NULL, '2026-06-17 08:00:00', 'Crisis convulsiva en casa', 'Epilepsia focal sintomática', 'Activa', 5);
-GO
-
--- 11.16 Historia clínica
-INSERT INTO HISTORIA_CLINICA (PacienteID, MedicoID, CitaID, AdmisionID, Anamnesis, Diagnostico, Tratamiento, Prescripcion) VALUES
-(1, 1, NULL, 1, 'Paciente masculino de 46 años, tabaquismo leve, sin antecedentes cardíacos previos.', 'Infarto agudo de miocardio anterolateral (STEMI).', 'Angioplastia coronaria percutánea primaria (ICP). Stent en arteria descendente anterior.', 'Ácido acetilsalicílico 100mg/día, Clopidogrel 75mg/día, Atorvastatina 40mg/noche.'),
-(2, 1, 2, NULL, 'Paciente femenina de 34 años con HTA diagnosticada hace 2 años.', 'Hipertensión arterial estadio 1 en control.', 'Ajuste de medicación antihipertensiva. Dieta hiposódica. Control en 3 meses.', 'Losartán 50mg cada 12 horas. Control de PA en casa.'),
-(3, 2, 3, 2, 'Paciente masculino de 51 años, sin antecedentes neurológicos. Cefalea progresiva hace 3 semanas.', 'Epilepsia focal sintomática en estudio. Posible lesión estructural a descartar.', 'Hospitalización para monitoreo EEG continuo y resonancia magnética de urgencia.', 'Valproato de sodio 500mg cada 12 horas. Reposo absoluto.');
-GO
-
--- 11.17 Documentos adjuntos
-INSERT INTO DOCUMENTO_ADJUNTO (HistorialID, BlobURL, NombreArchivo, TipoArchivo, TamanoKB, Descripcion, SubidoPorUsuarioID) VALUES
-(1, 'https://storage.clinix.com/docs/ecg_perez_20260616.pdf',    'ecg_perez_20260616.pdf',    'PDF',  450, 'Electrocardiograma de ingreso con elevación del ST en V1-V4', 2),
-(1, 'https://storage.clinix.com/docs/catlab_perez_20260617.pdf', 'catlab_perez_20260617.pdf', 'PDF',  820, 'Informe de cateterismo y angioplastia coronaria',             2),
-(2, 'https://storage.clinix.com/docs/lab_martinez_20260618.pdf', 'lab_martinez_20260618.pdf', 'PDF',  210, 'Resultados analítica: perfil lipídico y función renal',       2),
-(3, 'https://storage.clinix.com/docs/rm_herrera_20260618.jpeg',  'rm_herrera_20260618.jpeg',  'JPEG', 3200,'Imágenes de resonancia magnética cerebral - cortes axiales',  3);
-GO
-
--- 11.18 Log de auditoría
-INSERT INTO LOG_AUDITORIA (UsuarioID, Accion, Descripcion, TablaAfectada, RegistroID, IPOrigen) VALUES
-(1, 'LOGIN',         'Inicio de sesión exitoso',                             NULL,       NULL, '192.168.1.10'),
-(2, 'LOGIN',         'Inicio de sesión exitoso',                             NULL,       NULL, '192.168.1.11'),
-(1, 'CREATE',        'Admisión registrada para paciente Juan Pérez',         'ADMISION', 1,    '192.168.1.10'),
-(5, 'CREATE',        'Cita programada para Carlos Herrera',                  'CITA',     3,    '192.168.1.12'),
-(2, 'CREATE',        'Historia clínica registrada para admisión #1',         'HISTORIA_CLINICA', 1, '192.168.1.11'),
-(6, 'LOGIN',         'Inicio de sesión exitoso en Clínica Internacional',    NULL,       NULL, '192.168.1.20');
-GO
-
--- ============================================================================
--- FIN DEL SCRIPT
+-- FIN DEL SCRIPT - Ejecutar seed_data.sql para cargar datos de prueba
 -- ============================================================================

@@ -270,7 +270,7 @@ class MedicoService:
 
     def search(self, q: str, skip: int = 0, limit: int = 100) -> dict:
         pattern = f"%{q}%"
-        query = self._query_with_joins().join(Usuario).filter(
+        query = self._query_with_joins().filter(
             Usuario.Nombre.ilike(pattern)
             | Usuario.Apellido.ilike(pattern)
             | Usuario.DNI.ilike(pattern)
@@ -368,7 +368,7 @@ class EnfermeroService:
 
     def search(self, q: str, skip: int = 0, limit: int = 100) -> dict:
         pattern = f"%{q}%"
-        query = self._query_with_joins().join(Usuario).filter(
+        query = self._query_with_joins().filter(
             Usuario.Nombre.ilike(pattern)
             | Usuario.Apellido.ilike(pattern)
             | Usuario.DNI.ilike(pattern)
@@ -496,5 +496,5 @@ class HorarioMedicoService:
         item = self.db.query(HorarioMedico).filter(HorarioMedico.HorarioID == horario_id).first()
         if not item:
             raise NotFoundError("Horario not found")
-        self.db.delete(item)
+        item.Activo = False
         self.db.commit()

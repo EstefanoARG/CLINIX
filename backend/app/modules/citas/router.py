@@ -1,10 +1,11 @@
 from datetime import date
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 
 from app.core.dependencies import DbSession, require_role, get_current_paciente
 from app.modules.citas.schemas import (
     ReservaWebCreate, ReservaWebUpdate, ReservaWebResponse,
     CitaCreate, CitaUpdate, CitaResponse,
+    ConvertirPayload, RechazarPayload,
     DisponibilidadResponse,
 )
 from app.modules.citas.service import ReservaService, CitaService
@@ -17,6 +18,15 @@ AdminOrMedico = require_role(["Administrador", "Médico", "Recepcionista"])
 @router.post("/public/reservas", response_model=ReservaWebResponse, status_code=201)
 def create_reserva_publica(data: ReservaWebCreate, db: DbSession):
     return ReservaService(db).create(data)
+
+@router.get("/reservas/pendientes", response_model=dict)
+def list_reservas_pendientes(
+    db: DbSession,
+    _ = AdminOrMedico,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    return ReservaService(db).list(skip=skip, limit=limit, estado="Pendiente")
 
 @router.get("/reservas", response_model=dict)
 def list_reservas(
@@ -43,12 +53,25 @@ def delete_reserva(reserva_id: int, db: DbSession, _ = require_role(["Administra
 @router.post("/reservas/{reserva_id}/convertir", response_model=CitaResponse, status_code=201)
 def convertir_reserva(
     reserva_id: int,
+    payload: ConvertirPayload,
     db: DbSession,
     _ = require_role(["Administrador", "Recepcionista"]),
-    ubicacion_id: int | None = None,
-    observaciones: str | None = None,
 ):
-    return ReservaService(db).convert_to_cita(reserva_id, ubicacion_id, observaciones)
+    return ReservaService(db).convert_to_cita(
+        reserva_id, payload.ubicacion_id, payload.observaciones,
+    )
+
+@router.post("/reservas/{reserva_id}/rechazar", response_model=ReservaWebResponse)
+def rechazar_reserva(
+    reserva_id: int,
+    payload: RechazarPayload,
+    db: DbSession,
+    _ = require_role(["Administrador", "Recepcionista"]),
+):
+    try:
+        return ReservaService(db).rechazar(reserva_id, payload.motivo_rechazo)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # --- Citas ---
 
@@ -95,6 +118,6 @@ def get_disponibilidad(medico_id: int, fecha: date, db: DbSession):
 
 # --- Public: Paciente autenticado ve sus reservas ---
 
-@router.get("/public/mis-reservas", response_model=dict)
+@router.get("/public/mis-reservas", response_model=list[ReservaWebResponse])
 def mis_reservas(db: DbSession, paciente_id: int = Depends(get_current_paciente)):
     return ReservaService(db).list_by_paciente(paciente_id)

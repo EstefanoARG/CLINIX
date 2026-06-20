@@ -82,7 +82,7 @@ export default function DataTable<T>({
             ))}
             {data.length === 0 && (
               <TableRow><TableCell colSpan={columns.length + ((onEdit || onDelete || onView) ? 1 : 0)} align="center">
-                <Typography color="text.secondary" py={4}>Sin registros</Typography>
+                <Typography color="text.secondary" sx={{ py: 4 }}>Sin registros</Typography>
               </TableCell></TableRow>
             )}
           </TableBody>

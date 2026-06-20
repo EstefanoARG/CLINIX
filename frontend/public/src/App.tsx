@@ -5,13 +5,13 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import theme from './theme';
 import { AuthProvider } from './store/AuthContext';
 import PublicLayout from './components/layout/PublicLayout';
-import LandingPage from './pages/LandingPage';
+import Inicio from './pages/PublicPortal/Inicio';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import MedicosPage from './pages/medicos/MedicosPage';
-import SolicitarCitaPage from './pages/citas/SolicitarCitaPage';
+import SolicitudCita from './pages/PublicPortal/SolicitudCita';
 import MisReservasPage from './pages/citas/MisReservasPage';
 
 export default function App() {
@@ -22,10 +22,10 @@ export default function App() {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              <Route path="/" element={<Inicio />} />
               <Route element={<PublicLayout />}>
-                <Route path="/" element={<LandingPage />} />
                 <Route path="/medicos" element={<MedicosPage />} />
-                <Route path="/solicitar-cita" element={<SolicitarCitaPage />} />
+                <Route path="/solicitar-cita" element={<SolicitudCita />} />
                 <Route path="/mis-reservas" element={<MisReservasPage />} />
               </Route>
               <Route path="/login" element={<LoginPage />} />

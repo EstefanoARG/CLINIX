@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -17,13 +17,13 @@ class Admision:
     diagnostico_ingreso: Optional[str]
     enfermero_id: Optional[int] = None
     cita_id: Optional[int] = None
-    fecha_ingreso: Optional[datetime] = None
+    fecha_ingreso: datetime = field(default_factory=datetime.now)
     fecha_alta: Optional[datetime] = None
     diagnostico_alta: Optional[str] = None
     tipo_alta: Optional[str] = None
     estado: str = EstadoAdmision.ACTIVA.value
     observaciones: Optional[str] = None
-    fecha_creacion: Optional[datetime] = None
+    fecha_creacion: datetime = field(default_factory=datetime.now)
     creado_por_usuario_id: Optional[int] = None
 
     def dar_alta(self, tipo_alta: str, diagnostico_alta: str, observaciones: Optional[str] = None) -> None:

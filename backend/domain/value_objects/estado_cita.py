@@ -11,17 +11,8 @@ class EstadoCita(str, Enum):
     CANCELADA = "Cancelada"
     NO_ASISTIO = "No asistió"
 
-    _transiciones: dict[EstadoCita, set[EstadoCita]] = {
-        PROGRAMADA: {CONFIRMADA, CANCELADA},
-        CONFIRMADA: {EN_CURSO, CANCELADA, NO_ASISTIO},
-        EN_CURSO: {COMPLETADA, CANCELADA},
-        COMPLETADA: set(),
-        CANCELADA: set(),
-        NO_ASISTIO: set(),
-    }
-
     def puede_transicionar_a(self, nuevo: EstadoCita) -> bool:
-        return nuevo in self._transiciones.get(self, set())
+        return nuevo in _CITA_TRANS.get(self, set())
 
 
 class EstadoReserva(str, Enum):
@@ -31,16 +22,8 @@ class EstadoReserva(str, Enum):
     CONVERTIDA = "Convertida"
     CANCELADA = "Cancelada"
 
-    _transiciones: dict[EstadoReserva, set[EstadoReserva]] = {
-        PENDIENTE: {CONFIRMADA, RECHAZADA, CONVERTIDA, CANCELADA},
-        CONFIRMADA: {CONVERTIDA, CANCELADA},
-        RECHAZADA: set(),
-        CONVERTIDA: set(),
-        CANCELADA: set(),
-    }
-
     def puede_transicionar_a(self, nuevo: EstadoReserva) -> bool:
-        return nuevo in self._transiciones.get(self, set())
+        return nuevo in _RESERVA_TRANS.get(self, set())
 
 
 class EstadoAdmision(str, Enum):
@@ -48,14 +31,8 @@ class EstadoAdmision(str, Enum):
     ALTA = "Alta"
     TRASLADADO = "Trasladado"
 
-    _transiciones: dict[EstadoAdmision, set[EstadoAdmision]] = {
-        ACTIVA: {ALTA, TRASLADADO},
-        ALTA: set(),
-        TRASLADADO: set(),
-    }
-
     def puede_transicionar_a(self, nuevo: EstadoAdmision) -> bool:
-        return nuevo in self._transiciones.get(self, set())
+        return nuevo in _ADMISION_TRANS.get(self, set())
 
 
 class EstadoHabitacion(str, Enum):
@@ -64,12 +41,36 @@ class EstadoHabitacion(str, Enum):
     MANTENIMIENTO = "Mantenimiento"
     RESERVADA = "Reservada"
 
-    _transiciones: dict[EstadoHabitacion, set[EstadoHabitacion]] = {
-        DISPONIBLE: {OCUPADA, RESERVADA, MANTENIMIENTO},
-        OCUPADA: {DISPONIBLE},
-        MANTENIMIENTO: {DISPONIBLE},
-        RESERVADA: {OCUPADA, DISPONIBLE},
-    }
-
     def puede_transicionar_a(self, nuevo: EstadoHabitacion) -> bool:
-        return nuevo in self._transiciones.get(self, set())
+        return nuevo in _HABITACION_TRANS.get(self, set())
+
+
+_CITA_TRANS: dict[EstadoCita, set[EstadoCita]] = {
+    EstadoCita.PROGRAMADA: {EstadoCita.CONFIRMADA, EstadoCita.CANCELADA},
+    EstadoCita.CONFIRMADA: {EstadoCita.EN_CURSO, EstadoCita.CANCELADA, EstadoCita.NO_ASISTIO},
+    EstadoCita.EN_CURSO: {EstadoCita.COMPLETADA, EstadoCita.CANCELADA},
+    EstadoCita.COMPLETADA: set(),
+    EstadoCita.CANCELADA: set(),
+    EstadoCita.NO_ASISTIO: set(),
+}
+
+_RESERVA_TRANS: dict[EstadoReserva, set[EstadoReserva]] = {
+    EstadoReserva.PENDIENTE: {EstadoReserva.CONFIRMADA, EstadoReserva.RECHAZADA, EstadoReserva.CONVERTIDA, EstadoReserva.CANCELADA},
+    EstadoReserva.CONFIRMADA: {EstadoReserva.CONVERTIDA, EstadoReserva.CANCELADA},
+    EstadoReserva.RECHAZADA: set(),
+    EstadoReserva.CONVERTIDA: set(),
+    EstadoReserva.CANCELADA: set(),
+}
+
+_ADMISION_TRANS: dict[EstadoAdmision, set[EstadoAdmision]] = {
+    EstadoAdmision.ACTIVA: {EstadoAdmision.ALTA, EstadoAdmision.TRASLADADO},
+    EstadoAdmision.ALTA: set(),
+    EstadoAdmision.TRASLADADO: set(),
+}
+
+_HABITACION_TRANS: dict[EstadoHabitacion, set[EstadoHabitacion]] = {
+    EstadoHabitacion.DISPONIBLE: {EstadoHabitacion.OCUPADA, EstadoHabitacion.RESERVADA, EstadoHabitacion.MANTENIMIENTO},
+    EstadoHabitacion.OCUPADA: {EstadoHabitacion.DISPONIBLE},
+    EstadoHabitacion.MANTENIMIENTO: {EstadoHabitacion.DISPONIBLE},
+    EstadoHabitacion.RESERVADA: {EstadoHabitacion.OCUPADA, EstadoHabitacion.DISPONIBLE},
+}

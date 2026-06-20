@@ -258,6 +258,33 @@ export interface PaginatedResponse<T> {
   total: number;
 }
 
+// --- Reserva Web Output (admin bandeja) ---
+export interface ReservaWebOut {
+  reserva_id: number;
+  paciente_id: number | null;
+  nombre_solicitante: string;
+  apellidos_solicitante?: string;
+  dni_solicitante: string;
+  email_solicitante: string;
+  telefono_solicitante?: string;
+  direccion_solicitante?: string;
+  fecha_nacimiento_solicitante?: string;
+  genero_solicitante?: string;
+  especialidad_id: number;
+  medico_id: number | null;
+  fecha_hora_deseada: string;
+  motivo_consulta?: string;
+  estado: string;
+  acepta_terminos: boolean;
+  cita_id: number | null;
+  fecha_solicitud: string;
+  fecha_respuesta?: string;
+  observacion_admin?: string;
+  especialidad_nombre: string | null;
+  medico_nombre: string | null;
+  paciente_nombre: string | null;
+}
+
 // --- Disponibilidad ---
 export interface DisponibilidadSlot {
   hora_inicio: string;

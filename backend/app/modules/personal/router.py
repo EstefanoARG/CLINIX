@@ -83,6 +83,12 @@ def update_ubicacion(ubicacion_id: int, data: UbicacionFisicaUpdate, db: DbSessi
 def delete_ubicacion(ubicacion_id: int, db: DbSession, _ = require_role(["Administrador"])):
     UbicacionService(db).delete(ubicacion_id)
 
+# --- Especialidades (Público) ---
+
+@router.get("/public/especialidades", response_model=list[EspecialidadResponse])
+def list_especialidades_publico(db: DbSession):
+    return EspecialidadService(db).list()
+
 # --- Médicos (Público) ---
 
 @router.get("/public/medicos", response_model=dict)
