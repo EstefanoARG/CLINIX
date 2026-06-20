@@ -20,7 +20,7 @@ Sistema de gestión hospitalaria con **portal público** para pacientes (solicit
 | **Validación** | Pydantic + pydantic-settings | 2.x |
 | **Autenticación** | python-jose (JWT) + passlib (bcrypt) | — |
 | **Base de datos** | SQL Server vía pyodbc | ODBC 17+ |
-| **Frontend Admin** | React 18 + TypeScript + Vite, MUI 5 | puerto 5173 |
+| **Frontend Admin** | React 18 + TypeScript + Vite, MUI 5 | puerto 5175 |
 | **Frontend Público** | React 18 + TypeScript + Vite, MUI 5 | puerto 5174 |
 | **Documentación API** | Swagger UI (OpenAPI) | `/docs` |
 
@@ -76,7 +76,7 @@ Cada módulo sigue la estructura: `router.py` → `service.py` → `schemas.py`.
 
 ```
 frontend/
-├── admin/                          # Portal Administrativo (Vite, puerto 5173)
+├── admin/                          # Portal Administrativo (Vite, puerto 5175)
 │   └── src/
 │       ├── App.tsx                 # Routes
 │       ├── types/index.ts          # Interfaces TypeScript
@@ -285,13 +285,22 @@ API en `http://localhost:8000`, Swagger en `/docs`.
 # Portal Administrativo
 cd frontend/admin
 npm install
-npm run dev          # http://localhost:5173
+npm run dev          # http://localhost:5175
 
 # Portal Público
 cd frontend/public
+
+# Copiar y configurar variables de entorno
+cp .env.example .env
+
 npm install
 npm run dev          # http://localhost:5174
 ```
+
+> **Variables de entorno del portal público:**
+> | Variable | Descripción | Ejemplo |
+> |----------|-------------|---------|
+> | `VITE_PUBLIC_ADMIN_URL` | URL del portal administrativo | `http://localhost:5175` |
 
 ---
 
