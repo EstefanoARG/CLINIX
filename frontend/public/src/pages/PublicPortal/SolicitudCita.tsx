@@ -249,6 +249,20 @@ export default function SolicitudCita() {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ maxWidth: 960, mx: 'auto', px: 2, py: 4, position: 'relative', zIndex: 1 }}>
 
+        <Button
+          onClick={() => navigate('/')}
+          sx={{
+            mb: 1.5,
+            color: '#1565C0',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            textTransform: 'none',
+            '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
+          }}
+        >
+          ← Volver al inicio
+        </Button>
+
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
 
         <Box sx={{
@@ -429,7 +443,7 @@ export default function SolicitudCita() {
 
             <Dialog open={terminosAbierto} onClose={() => setTerminosAbierto(false)}
               maxWidth="sm" fullWidth
-              PaperProps={{ sx: { borderRadius: 3 } }}>
+              slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
               <DialogTitle sx={{ fontWeight: 700, color: '#1565C0' }}>
                 Términos de Servicio y Política de Privacidad
               </DialogTitle>

@@ -19,6 +19,8 @@ env/
 node_modules/
 dist/
 *.tsbuildinfo
+.vite/
+package-lock.json
 
 # OS
 .DS_Store
