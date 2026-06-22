@@ -41,7 +41,7 @@ export default function BandejaRecepcion() {
 
   const fetchReservas = () => {
     setLoading(true);
-    api.get('/reservas/pendientes')
+    api.get('/reservas')
       .then(({ data }) => setReservas(data.items ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -179,7 +179,7 @@ export default function BandejaRecepcion() {
             {loading ? (
               <TableRow><TableCell colSpan={10} align="center" sx={{ py: 5 }}>Cargando...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={10} align="center" sx={{ py: 5 }}>No hay reservas pendientes</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} align="center" sx={{ py: 5 }}>No hay reservas</TableCell></TableRow>
             ) : filtered.map((r) => (
               <TableRow key={r.reserva_id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                 <TableCell>{r.reserva_id}</TableCell>
@@ -202,24 +202,28 @@ export default function BandejaRecepcion() {
                         <VisibilityIcon sx={{ fontSize: 16, color: '#546E7A' }} />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Aprobar">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenConvertir(r)}
-                        sx={{ bgcolor: '#E8F5E9', width: 30, height: 30, '&:hover': { bgcolor: '#C8E6C9' } }}
-                      >
-                        <CheckCircleIcon sx={{ fontSize: 16, color: '#43A047' }} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Rechazar">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenRechazar(r)}
-                        sx={{ bgcolor: '#FFEBEE', width: 30, height: 30, '&:hover': { bgcolor: '#FFCDD2' } }}
-                      >
-                        <CancelIcon sx={{ fontSize: 16, color: '#E53935' }} />
-                      </IconButton>
-                    </Tooltip>
+                    {r.estado === 'Pendiente' && (
+                      <>
+                        <Tooltip title="Aprobar">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenConvertir(r)}
+                            sx={{ bgcolor: '#E8F5E9', width: 30, height: 30, '&:hover': { bgcolor: '#C8E6C9' } }}
+                          >
+                            <CheckCircleIcon sx={{ fontSize: 16, color: '#43A047' }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Rechazar">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenRechazar(r)}
+                            sx={{ bgcolor: '#FFEBEE', width: 30, height: 30, '&:hover': { bgcolor: '#FFCDD2' } }}
+                          >
+                            <CancelIcon sx={{ fontSize: 16, color: '#E53935' }} />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
                   </Box>
                 </TableCell>
               </TableRow>
