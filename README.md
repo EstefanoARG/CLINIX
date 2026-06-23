@@ -211,6 +211,7 @@ Métricas agregadas y actividades recientes.
 |-------|-------------|
 | `CLINICA` | Clínicas (multi-tenant) |
 | `ESPECIALIDAD` | Especialidades médicas |
+| `CIE10_DIAGNOSTICO` | Catálogo CIE-10 por especialidad (MINSA Perú) |
 | `DEPARTAMENTO` | Departamentos por clínica |
 | `UBICACION_FISICA` | Consultorios, salas |
 | `HABITACION` | Habitaciones (con tipo, capacidad, estado) |
@@ -337,7 +338,9 @@ aplicación. `VITE_API_URL` permite cambiar la URL de la API.
 | `/habitaciones` | PanelCuartos | Grid de cuartos + crear/editar |
 | `/admisiones` | AdmisionesPage | Ingreso hospitalario y alta médica |
 | `/auditoria` | AuditoriaPage | Logs con filtros y paginación |
-| `/panel/doctor` | PanelMedicoPage | Agenda y pacientes hospitalizados |
+| `/panel/doctor/agenda` | AgendaPage | Calendario médico + ficha clínica |
+| `/panel/doctor/pacientes` | DoctorPacientesPage | Pacientes propios del doctor |
+| `/panel/doctor/pacientes/:id/historial` | DoctorHistorialPage | Historial clínico del paciente |
 | `/panel/enfermeria` | PanelEnfermeriaPage | Pacientes asignados |
 | `/departamentos` | DepartamentosPage | CRUD de departamentos |
 | `/ubicaciones` | UbicacionesPage | CRUD de ubicaciones físicas |
@@ -358,9 +361,10 @@ Endpoint principales por módulo:
 | Citas/Reservas | `GET/POST/PUT/DELETE /citas`, `GET/POST/PUT/DELETE /reservas`, `POST /convertir`, `POST /rechazar`, `GET /disponibilidad` |
 | Habitaciones | `CRUD /habitaciones` |
 | Admisiones | `CRUD /admisiones`, `POST /alta` |
-| Dashboard | `GET /dashboard`, `GET /dashboard/metricas` |
+| Dashboard | `GET /dashboard?periodo=hoy|semana|mes` |
+| CIE-10 | `GET /cie10?especialidad_id=X&q=texto` |
 | Auditoría | `GET /auditoria` |
-| Paneles | `GET /medico/mis-citas`, `GET /medico/mis-admisiones`, `GET /enfermero/mis-pacientes` |
+| Paneles | `GET /medico/mis-citas`, `GET /medico/mis-pacientes`, `GET /agenda/{medico_id}?fecha=`, `GET /enfermero/mis-pacientes` |
 | Público | `GET /public/especialidades`, `GET /public/medicos`, `POST /public/reservas`, `GET /public/mis-reservas` |
 
 ---
@@ -386,6 +390,12 @@ Endpoint principales por módulo:
 - [x] Auto-seed funcional para SQLite con credenciales demo
 - [x] Panel Admin completo: médicos, enfermería, pacientes, especialidades, reservas, admisiones, auditoría y paneles por rol
 - [x] Scripts `setup.ps1` y `run-dev.ps1`
+- [x] **Dashboard mejorado** — KPIs y tablas con filtro por período (hoy/semana/mes)
+- [x] **Agenda Médica** — Calendario con slots, fichas clínicas, CIE-10 por especialidad, marcar atendido
+- [x] **Mis Pacientes (Doctor)** — Lista de pacientes propios con estado y acceso al historial
+- [x] **Módulo CIE-10** — ~170 códigos MINSA Perú por especialidad, Autocomplete en ficha clínica
+- [x] **sessionStorage** — Cada pestaña del navegador mantiene su propia sesión
+- [x] **Migraciones SQL** — Scripts idempotentes para BD existentes (`migration_NNN_*.sql`)
 
 ## Pendiente
 

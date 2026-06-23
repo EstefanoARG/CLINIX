@@ -9,7 +9,7 @@ import {
 } from '@mui/icons-material';
 import api from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import type { AgendaResponse, AgendaCitaItem } from '../../types';
+import type { AgendaResponse, AgendaCitaItem, HistoriaClinica } from '../../types';
 
 interface PatientSlot {
   id: number;
@@ -22,6 +22,7 @@ interface PatientSlot {
   dni: string;
   hc: string;
   citaId?: number;
+  tiene_historia: boolean;
 }
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -68,6 +69,7 @@ export default function AgendaPage() {
     dni: c.paciente_dni,
     hc: `HC-${c.paciente_id.toString().padStart(4, '0')}`,
     citaId: c.cita_id,
+    tiene_historia: c.tiene_historia,
   }));
 
   const huecosLibres = () => {
@@ -84,7 +86,7 @@ export default function AgendaPage() {
             id: -(slots.length + 1),
             paciente_id: 0,
             time: horaStr,
-            name: '', age: null, reason: '', status: 'libre', dni: '', hc: '',
+            name: '', age: null, reason: '', status: 'libre', dni: '', hc: '', tiene_historia: false,
           });
         }
       }
@@ -124,7 +126,7 @@ export default function AgendaPage() {
 
   const addDaysFn = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
 
-  const selectPatient = (id: number) => {
+  const selectPatient = async (id: number) => {
     const p = pacientes.find((x) => x.id === id);
     if (!p) return;
     setActiveId(id);
@@ -137,6 +139,26 @@ export default function AgendaPage() {
     setProximaCita('');
     setDerivacion('');
     setCieRows([{ code: '', desc: '' }]);
+
+    if (p.tiene_historia && p.citaId) {
+      try {
+        const { data } = await api.get<HistoriaClinica[]>(`/pacientes/${p.paciente_id}/historias`);
+        const hc = data.find((h) => h.cita_id === p.citaId);
+        if (hc) {
+          setMotivo('');
+          setEnfermedad(hc.anamnesis || '');
+          if (hc.diagnostico) {
+            const parts = hc.diagnostico.split('; ').map((d) => {
+              const m = d.match(/^(\S+) - (.+)$/);
+              return m ? { code: m[1], desc: m[2] } : { code: '', desc: d };
+            });
+            setCieRows(parts.length ? parts : [{ code: '', desc: '' }]);
+          }
+          setTratamiento(hc.tratamiento || '');
+          setObservaciones(hc.prescripcion || '');
+        }
+      } catch {}
+    }
   };
 
   const saveFicha = async () => {
@@ -169,6 +191,7 @@ export default function AgendaPage() {
   };
 
   const activePatient = activeId ? pacientes.find((p) => p.id === activeId) : null;
+  const esSoloLectura = activePatient?.status === 'atendido' || activePatient?.status === 'cancelado';
 
   return (
     <Paper
@@ -250,12 +273,14 @@ export default function AgendaPage() {
                 onClick={() => selectPatient(slot.id)}
                 sx={{
                   display: 'flex', gap: 1.5, px: 1.5, py: 1.2, borderRadius: 1,
-                  cursor: 'pointer', mb: 0.5,
+                  cursor: slot.status === 'atendido' || slot.status === 'cancelado' ? 'default' : 'pointer',
+                  opacity: slot.status === 'atendido' || slot.status === 'cancelado' ? 0.6 : 1,
+                  mb: 0.5,
                   bgcolor: activeId === slot.id ? 'background.paper' : 'transparent',
                   border: '0.5px solid',
                   borderColor: activeId === slot.id ? 'divider' : 'transparent',
                   transition: 'background 0.15s',
-                  '&:hover': { bgcolor: 'background.paper' },
+                  '&:hover': slot.status === 'atendido' || slot.status === 'cancelado' ? {} : { bgcolor: 'background.paper' },
                 }}
               >
                 <Typography variant="caption" color="text.disabled" sx={{ minWidth: 40, fontVariantNumeric: 'tabular-nums', pt: 0.3 }}>
@@ -324,14 +349,16 @@ export default function AgendaPage() {
                 <Button size="small" variant="outlined" startIcon={<Print />} sx={{ fontSize: 12 }}>
                   Imprimir
                 </Button>
-                <Button size="small" variant="contained" startIcon={<Save />} onClick={saveFicha} sx={{ fontSize: 12 }}>
-                  Guardar ficha
-                </Button>
+                {!esSoloLectura && (
+                  <Button size="small" variant="contained" startIcon={<Save />} onClick={saveFicha} sx={{ fontSize: 12 }}>
+                    Guardar ficha
+                  </Button>
+                )}
               </Box>
             </Box>
 
             {/* Form Body */}
-            <Box sx={{ flex: 1, overflow: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ flex: 1, overflow: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3, pointerEvents: esSoloLectura ? 'none' : 'auto', opacity: esSoloLectura ? 0.85 : 1 }}>
               {/* Signos Vitales */}
               <Box>
                 <Typography variant="caption" sx={{
@@ -526,25 +553,34 @@ export default function AgendaPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               bgcolor: 'background.paper',
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#97C459' }} />
-                <Typography variant="caption" color="text.secondary">Consulta en curso</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button size="small" variant="outlined" startIcon={<Delete />}
-                  onClick={() => {
-                    setMotivo(''); setTiempo(''); setEnfermedad(''); setAntecedentes('');
-                    setTratamiento(''); setObservaciones(''); setProximaCita(''); setDerivacion('');
-                    setCieRows([{ code: '', desc: '' }]);
-                  }}
-                  sx={{ fontSize: 12 }}>
-                  Limpiar
-                </Button>
-                <Button size="small" variant="contained" startIcon={<Save />}
-                  onClick={saveFicha} sx={{ fontSize: 12 }}>
-                  Guardar y marcar atendido
-                </Button>
-              </Box>
+              {esSoloLectura ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#97C459' }} />
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>Paciente atendido — solo lectura</Typography>
+                </Box>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#97C459' }} />
+                    <Typography variant="caption" color="text.secondary">Consulta en curso</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button size="small" variant="outlined" startIcon={<Delete />}
+                      onClick={() => {
+                        setMotivo(''); setTiempo(''); setEnfermedad(''); setAntecedentes('');
+                        setTratamiento(''); setObservaciones(''); setProximaCita(''); setDerivacion('');
+                        setCieRows([{ code: '', desc: '' }]);
+                      }}
+                      sx={{ fontSize: 12 }}>
+                      Limpiar
+                    </Button>
+                    <Button size="small" variant="contained" startIcon={<Save />}
+                      onClick={saveFicha} sx={{ fontSize: 12 }}>
+                      Guardar y marcar atendido
+                    </Button>
+                  </Box>
+                </>
+              )}
             </Box>
           </>
         )}
