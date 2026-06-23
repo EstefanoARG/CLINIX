@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
 def get_dashboard(
     db: DbSession,
     _ = require_role(["Administrador"]),
-    periodo: str = Query("hoy", regex="^(hoy|semana|mes)$"),
+    periodo: str = Query("hoy", pattern="^(hoy|semana|mes)$"),
 ):
     return DashboardService(db).get_dashboard(periodo)
 

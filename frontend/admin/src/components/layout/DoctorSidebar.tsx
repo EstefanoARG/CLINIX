@@ -24,7 +24,7 @@ interface DoctorSidebarProps {
   role: string | null;
 }
 
-export default function DoctorSidebar({ role }: DoctorSidebarProps) {
+export default function DoctorSidebar(_props: DoctorSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 

@@ -225,10 +225,53 @@ export interface DashboardMetricas {
   total_habitaciones: number;
   habitaciones_disponibles: number;
   habitaciones_ocupadas: number;
+  habitaciones_mantenimiento: number;
   citas_hoy: number;
+  total_citas_periodo: number;
+  citas_completadas: number;
+  citas_canceladas: number;
   admisiones_activas: number;
   reservas_pendientes: number;
+  total_reservas_periodo: number;
+  reservas_convertidas: number;
   pacientes_recientes: number;
+}
+
+export interface DashboardIndicadores {
+  ocupacion_hospitalaria: number;
+  tasa_completitud_citas: number;
+  tasa_cancelacion_citas: number;
+  conversion_reservas: number;
+  promedio_citas_por_medico: number;
+}
+
+export interface SerieTemporalItem {
+  fecha: string;
+  etiqueta: string;
+  citas: number;
+  completadas: number;
+  canceladas: number;
+  reservas: number;
+}
+
+export interface DistribucionItem {
+  nombre: string;
+  valor: number;
+}
+
+export interface EspecialidadDemandaItem {
+  especialidad: string;
+  citas: number;
+  reservas: number;
+  total: number;
+}
+
+export interface DashboardGraficos {
+  tendencia: SerieTemporalItem[];
+  estados_citas: DistribucionItem[];
+  ocupacion_habitaciones: DistribucionItem[];
+  estados_reservas: DistribucionItem[];
+  demanda_especialidades: EspecialidadDemandaItem[];
 }
 
 export interface ActividadReciente {
@@ -260,8 +303,14 @@ export interface DashboardTablas {
 
 export interface DashboardResponse {
   metricas: DashboardMetricas;
+  indicadores: DashboardIndicadores;
+  graficos: DashboardGraficos;
   actividades: ActividadReciente[];
   tablas: DashboardTablas;
+  periodo_desde: string;
+  periodo_hasta: string;
+  tendencia_desde: string;
+  tendencia_hasta: string;
 }
 
 // --- Agenda Médico ---
