@@ -9,6 +9,7 @@ from app.modules.citas.schemas import (
     DisponibilidadResponse,
 )
 from app.modules.citas.service import ReservaService, CitaService
+from app.models import Medico
 
 router = APIRouter(prefix="/api/v1", tags=["Citas"])
 AdminOrMedico = require_role(["Administrador", "Médico", "Recepcionista"])
@@ -108,6 +109,29 @@ def update_cita(cita_id: int, data: CitaUpdate, db: DbSession, _ = require_role(
 @router.delete("/citas/{cita_id}", status_code=204)
 def cancel_cita(cita_id: int, db: DbSession, _ = require_role(["Administrador", "Recepcionista"])):
     CitaService(db).delete(cita_id)
+
+
+@router.get("/medico/mis-citas", response_model=dict)
+def mis_citas_medico(
+    db: DbSession,
+    current_user=require_role(["Médico"]),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    estado: str | None = None,
+    fecha_desde: date | None = None,
+    fecha_hasta: date | None = None,
+):
+    medico = db.query(Medico).filter(Medico.UsuarioID == current_user.UsuarioID).first()
+    if not medico:
+        raise HTTPException(status_code=404, detail="Medico profile not found")
+    return CitaService(db).list(
+        skip=skip,
+        limit=limit,
+        estado=estado,
+        medico_id=medico.MedicoID,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
 
 # --- Disponibilidad ---
 

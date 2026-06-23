@@ -6,7 +6,7 @@ interface AuthState {
   user: UserResponse | null;
   token: string | null;
   loading: boolean;
-  login: (req: LoginRequest) => Promise<void>;
+  login: (req: LoginRequest) => Promise<string>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: data.role,
       activo: true,
     });
+    return data.role;
   };
 
   const logout = () => {

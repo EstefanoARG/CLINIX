@@ -16,8 +16,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      await login({ email, password });
-      navigate('/dashboard');
+      const role = await login({ email, password });
+      if (role === 'Médico') navigate('/panel/doctor');
+      else if (role === 'Enfermero') navigate('/panel/enfermeria');
+      else if (role === 'Recepcionista') navigate('/bandeja');
+      else navigate('/dashboard');
     } catch {
       setError('Credenciales inválidas');
     }

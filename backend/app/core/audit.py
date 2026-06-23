@@ -22,5 +22,6 @@ def registrar_auditoria(
         FechaHora=datetime.now(),
     )
     db.add(entry)
-    db.flush()
+    db.commit()
+    db.refresh(entry)
     return entry

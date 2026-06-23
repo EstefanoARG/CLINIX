@@ -1,5 +1,5 @@
 from datetime import time, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EspecialidadCreate(BaseModel):
@@ -13,12 +13,12 @@ class EspecialidadUpdate(BaseModel):
 
 
 class EspecialidadResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     especialidad_id: int
     nombre_especialidad: str
     descripcion: str | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class DepartamentoCreate(BaseModel):
@@ -34,14 +34,13 @@ class DepartamentoUpdate(BaseModel):
 
 
 class DepartamentoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     departamento_id: int
     clinical_id: int
     nombre: str
     descripcion: str | None = None
     activo: bool
-
-    class Config:
-        from_attributes = True
 
 
 class UbicacionFisicaCreate(BaseModel):
@@ -59,6 +58,8 @@ class UbicacionFisicaUpdate(BaseModel):
 
 
 class UbicacionFisicaResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     ubicacion_id: int
     departamento_id: int
     nombre: str
@@ -66,8 +67,6 @@ class UbicacionFisicaResponse(BaseModel):
     piso: str | None = None
     activo: bool
 
-    class Config:
-        from_attributes = True
 
 
 class MedicoCreate(BaseModel):
@@ -92,6 +91,8 @@ class MedicoUpdate(BaseModel):
 
 
 class MedicoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     medico_id: int
     usuario_id: int
     especialidad_id: int
@@ -105,8 +106,6 @@ class MedicoResponse(BaseModel):
     especialidad: str | None = None
     departamento: str | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class EnfermeroCreate(BaseModel):
@@ -131,6 +130,8 @@ class EnfermeroUpdate(BaseModel):
 
 
 class EnfermeroResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     enfermero_id: int
     usuario_id: int
     departamento_id: int
@@ -141,8 +142,6 @@ class EnfermeroResponse(BaseModel):
     apellido: str | None = None
     email: str | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class HorarioMedicoCreate(BaseModel):
@@ -162,6 +161,8 @@ class HorarioMedicoUpdate(BaseModel):
 
 
 class HorarioMedicoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     horario_id: int
     medico_id: int
     dia_semana: int
@@ -169,6 +170,3 @@ class HorarioMedicoResponse(BaseModel):
     hora_fin: time
     intervalo_citas: int
     activo: bool
-
-    class Config:
-        from_attributes = True

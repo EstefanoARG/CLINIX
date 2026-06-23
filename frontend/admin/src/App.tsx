@@ -13,6 +13,23 @@ import PanelCuartos from './pages/habitaciones/PanelCuartos';
 import AdmisionCitas from './pages/citas/AdmisionCitas';
 import DepartamentosPage from './pages/departamentos/DepartamentosPage';
 import UbicacionesPage from './pages/ubicaciones/UbicacionesPage';
+import EspecialidadesPage from './pages/especialidades/EspecialidadesPage';
+import DoctoresPage from './pages/doctores/DoctoresPage';
+import EnfermerasPage from './pages/enfermeras/EnfermerasPage';
+import PacientesPage from './pages/pacientes/PacientesPage';
+import AdmisionesPage from './pages/admisiones/AdmisionesPage';
+import AuditoriaPage from './pages/auditoria/AuditoriaPage';
+import PanelMedicoPage from './pages/paneles/PanelMedicoPage';
+import PanelEnfermeriaPage from './pages/paneles/PanelEnfermeriaPage';
+import { useAuth } from './store/AuthContext';
+
+function RoleHome() {
+  const { user } = useAuth();
+  if (user?.role === 'Médico') return <Navigate to="/panel/doctor" replace />;
+  if (user?.role === 'Enfermero') return <Navigate to="/panel/enfermeria" replace />;
+  if (user?.role === 'Recepcionista') return <Navigate to="/bandeja" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
 
 function AppRoutes() {
   return (
@@ -27,11 +44,20 @@ function AppRoutes() {
           <Route path="/habitaciones" element={<PanelCuartos />} />
           <Route path="/departamentos" element={<DepartamentosPage />} />
           <Route path="/ubicaciones" element={<UbicacionesPage />} />
+          <Route path="/especialidades" element={<EspecialidadesPage />} />
+          <Route path="/doctores" element={<DoctoresPage />} />
+          <Route path="/enfermeras" element={<EnfermerasPage />} />
+          <Route path="/pacientes" element={<PacientesPage />} />
           <Route path="/citas" element={<AdmisionCitas />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/reservas" element={<BandejaRecepcion />} />
+          <Route path="/admisiones" element={<AdmisionesPage />} />
+          <Route path="/auditoria" element={<AuditoriaPage />} />
+          <Route path="/panel/doctor" element={<PanelMedicoPage />} />
+          <Route path="/panel/enfermeria" element={<PanelEnfermeriaPage />} />
+          <Route path="/" element={<RoleHome />} />
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<RoleHome />} />
     </Routes>
   );
 }

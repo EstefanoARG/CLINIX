@@ -194,7 +194,7 @@ class AdmisionService:
         return [_admision_to_dict(a) for a in items]
 
     def list(self, skip: int = 0, limit: int = 100, estado: str | None = None,
-             paciente_id: int | None = None) -> dict:
+             paciente_id: int | None = None, medico_id: int | None = None) -> dict:
         query = self.db.query(Admision).options(
             joinedload(Admision.paciente),
             joinedload(Admision.medico).joinedload(Medico.usuario),
@@ -205,6 +205,8 @@ class AdmisionService:
             query = query.filter(Admision.Estado == estado)
         if paciente_id:
             query = query.filter(Admision.PacienteID == paciente_id)
+        if medico_id:
+            query = query.filter(Admision.MedicoID == medico_id)
         total = query.count()
         items = query.order_by(Admision.FechaIngreso.desc()).offset(skip).limit(limit).all()
         return {"items": [_admision_to_dict(a) for a in items], "total": total}

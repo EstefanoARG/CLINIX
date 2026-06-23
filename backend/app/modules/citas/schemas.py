@@ -1,5 +1,5 @@
-from datetime import datetime, time
-from pydantic import BaseModel, Field
+from datetime import date, datetime, time
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReservaWebCreate(BaseModel):
@@ -10,7 +10,7 @@ class ReservaWebCreate(BaseModel):
     email_solicitante: str
     telefono_solicitante: str | None = None
     direccion_solicitante: str | None = Field(None, max_length=250)
-    fecha_nacimiento_solicitante: datetime | None = None
+    fecha_nacimiento_solicitante: date | None = None
     genero_solicitante: str | None = None
     especialidad_id: int
     medico_id: int | None = None
@@ -22,9 +22,13 @@ class ReservaWebCreate(BaseModel):
 class ReservaWebUpdate(BaseModel):
     estado: str | None = None
     observacion_admin: str | None = None
+    medico_id: int | None = None
+    fecha_hora_deseada: datetime | None = None
 
 
 class ReservaWebResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     reserva_id: int
     paciente_id: int | None = None
     nombre_solicitante: str
@@ -32,7 +36,7 @@ class ReservaWebResponse(BaseModel):
     email_solicitante: str
     telefono_solicitante: str | None = None
     direccion_solicitante: str | None = None
-    fecha_nacimiento_solicitante: datetime | None = None
+    fecha_nacimiento_solicitante: date | None = None
     genero_solicitante: str | None = None
     especialidad_id: int
     medico_id: int | None = None
@@ -48,8 +52,6 @@ class ReservaWebResponse(BaseModel):
     medico_nombre: str | None = None
     paciente_nombre: str | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class CitaCreate(BaseModel):
@@ -73,6 +75,8 @@ class CitaUpdate(BaseModel):
 
 
 class CitaResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     cita_id: int
     paciente_id: int
     medico_id: int
@@ -89,8 +93,6 @@ class CitaResponse(BaseModel):
     medico_nombre: str | None = None
     especialidad_nombre: str | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class ConvertirPayload(BaseModel):

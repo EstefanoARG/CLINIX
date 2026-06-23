@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from domain.value_objects.estado_cita import EstadoReserva
@@ -20,7 +20,7 @@ class ReservaWeb:
     fecha_hora_deseada: datetime
     motivo_consulta: Optional[str]
     direccion_solicitante: Optional[str] = None
-    fecha_nacimiento_solicitante: Optional[datetime] = None
+    fecha_nacimiento_solicitante: Optional[date] = None
     genero_solicitante: Optional[str] = None
     estado: str = EstadoReserva.PENDIENTE.value
     acepta_terminos: bool = False

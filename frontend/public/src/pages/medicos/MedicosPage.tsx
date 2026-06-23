@@ -14,10 +14,10 @@ export default function MedicosPage() {
 
   useEffect(() => {
     api.get<{ items: Medico[]; total: number }>('/public/medicos').then(({ data }) => setMedicos(data.items));
-    api.get<Especialidad[]>('/especialidades').then(({ data }) => setEspecialidades(data));
+    api.get<Especialidad[]>('/public/especialidades').then(({ data }) => setEspecialidades(data));
   }, []);
 
-  const handleFilter = (id: number) => {
+  const handleFilter = (id: number | '') => {
     setEspecialidadId(id);
     api.get<{ items: Medico[]; total: number }>(`/public/medicos${id ? `?especialidad_id=${id}` : ''}`)
       .then(({ data }) => setMedicos(data.items));
@@ -32,7 +32,7 @@ export default function MedicosPage() {
 
       <FormControl size="small" sx={{ minWidth: 250, mb: 3 }}>
         <InputLabel>Filtrar por especialidad</InputLabel>
-        <Select value={especialidadId} label="Filtrar por especialidad" onChange={(e) => handleFilter(Number(e.target.value))}>
+        <Select value={especialidadId} label="Filtrar por especialidad" onChange={(e) => handleFilter(e.target.value ? Number(e.target.value) : '')}>
           <MenuItem value=""><em>Todas</em></MenuItem>
           {especialidades.map((esp) => (
             <MenuItem key={esp.especialidad_id} value={esp.especialidad_id}>{esp.nombre_especialidad}</MenuItem>

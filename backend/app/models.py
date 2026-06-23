@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from sqlalchemy import (
     Column, Integer, String, Text, DateTime, Date, Time, Boolean, ForeignKey,
-    UniqueConstraint, CheckConstraint
+    UniqueConstraint, CheckConstraint, text
 )
 from sqlalchemy.orm import relationship
 
@@ -18,8 +18,8 @@ class Clinica(Base):
     Telefono = Column(String(20), nullable=False)
     Email = Column(String(100), nullable=False)
     PlanSuscripcion = Column(String(50), nullable=False)
-    Activo = Column(Boolean, nullable=False, default=True)
-    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
 
     departamentos = relationship("Departamento", back_populates="clinica")
     usuarios = relationship("Usuario", back_populates="clinica")
@@ -58,7 +58,7 @@ class Departamento(Base):
     ClinicalID = Column(Integer, ForeignKey("CLINICA.ClinicalID"), nullable=False)
     Nombre = Column(String(100), nullable=False)
     Descripcion = Column(String(255), nullable=True)
-    Activo = Column(Boolean, nullable=False, default=True)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
 
     clinica = relationship("Clinica", back_populates="departamentos")
     ubicaciones = relationship("UbicacionFisica", back_populates="departamento")
@@ -75,7 +75,7 @@ class UbicacionFisica(Base):
     Nombre = Column(String(100), nullable=False)
     Tipo = Column(String(50), nullable=False)
     Piso = Column(String(10), nullable=True)
-    Activo = Column(Boolean, nullable=False, default=True)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
 
     departamento = relationship("Departamento", back_populates="ubicaciones")
     usuarios = relationship("Usuario", back_populates="ubicacion")
@@ -95,7 +95,7 @@ class Habitacion(Base):
     Piso = Column(String(10), nullable=True)
     Tipo = Column(String(50), nullable=False)
     Capacidad = Column(Integer, nullable=False)
-    Estado = Column(String(30), nullable=False, default="Disponible")
+    Estado = Column(String(30), nullable=False, default="Disponible", server_default=text("'Disponible'"))
 
     departamento = relationship("Departamento", back_populates="habitaciones")
     admisiones = relationship("Admision", back_populates="habitacion")
@@ -123,8 +123,8 @@ class Usuario(Base):
     PasswordHash = Column(String(255), nullable=False)
     TokenRecuperacion = Column(String(255), nullable=True)
     TokenExpiracion = Column(DateTime, nullable=True)
-    Activo = Column(Boolean, nullable=False, default=True)
-    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     UltimoAcceso = Column(DateTime, nullable=True)
 
     clinica = relationship("Clinica", back_populates="usuarios")
@@ -148,7 +148,7 @@ class LogAuditoria(Base):
     TablaAfectada = Column(String(50), nullable=True)
     RegistroID = Column(Integer, nullable=True)
     IPOrigen = Column(String(45), nullable=True)
-    FechaHora = Column(DateTime, nullable=False, default=datetime.now)
+    FechaHora = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
 
     usuario = relationship("Usuario")
 
@@ -161,7 +161,7 @@ class Medico(Base):
     EspecialidadID = Column(Integer, ForeignKey("ESPECIALIDAD.EspecialidadID"), nullable=False)
     DepartamentoID = Column(Integer, ForeignKey("DEPARTAMENTO.DepartamentoID"), nullable=False)
     NumeroColegiatura = Column(String(50), nullable=False, unique=True)
-    Activo = Column(Boolean, nullable=False, default=True)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
 
     usuario = relationship("Usuario", back_populates="medico")
     especialidad = relationship("Especialidad", back_populates="medicos")
@@ -181,8 +181,8 @@ class HorarioMedico(Base):
     DiaSemana = Column(Integer, nullable=False)
     HoraInicio = Column(Time, nullable=False)
     HoraFin = Column(Time, nullable=False)
-    IntervaloCitas = Column(Integer, nullable=False, default=30)
-    Activo = Column(Boolean, nullable=False, default=True)
+    IntervaloCitas = Column(Integer, nullable=False, default=30, server_default=text("30"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
 
     medico = relationship("Medico", back_populates="horarios")
 
@@ -200,7 +200,7 @@ class Enfermero(Base):
     DepartamentoID = Column(Integer, ForeignKey("DEPARTAMENTO.DepartamentoID"), nullable=False)
     NumeroLicencia = Column(String(50), nullable=False, unique=True)
     Turno = Column(String(30), nullable=False)
-    Activo = Column(Boolean, nullable=False, default=True)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
 
     usuario = relationship("Usuario", back_populates="enfermero")
     departamento = relationship("Departamento", back_populates="enfermeros")
@@ -225,8 +225,8 @@ class Paciente(Base):
     Email = Column(String(100), nullable=True)
     GrupoSanguineo = Column(String(10), nullable=True)
     Alergias = Column(Text, nullable=True)
-    Activo = Column(Boolean, nullable=False, default=True)
-    FechaRegistro = Column(DateTime, nullable=False, default=datetime.now)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    FechaRegistro = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
 
     clinica = relationship("Clinica", back_populates="pacientes")
     auth = relationship("PacienteAuth", back_populates="paciente", uselist=False)
@@ -251,8 +251,8 @@ class PacienteAuth(Base):
     PasswordHash = Column(String(255), nullable=False)
     TokenRecuperacion = Column(String(255), nullable=True)
     TokenExpiracion = Column(DateTime, nullable=True)
-    Activo = Column(Boolean, nullable=False, default=True)
-    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now)
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     UltimoAcceso = Column(DateTime, nullable=True)
 
     paciente = relationship("Paciente", back_populates="auth")
@@ -275,9 +275,9 @@ class ReservaWeb(Base):
     MedicoID = Column(Integer, ForeignKey("MEDICO.MedicoID"), nullable=True)
     FechaHoraDeseada = Column(DateTime, nullable=False)
     MotivoConsulta = Column(Text, nullable=True)
-    Estado = Column(String(30), nullable=False, default="Pendiente")
-    AceptaTerminos = Column(Boolean, nullable=False, default=False)
-    FechaSolicitud = Column(DateTime, nullable=False, default=datetime.now)
+    Estado = Column(String(30), nullable=False, default="Pendiente", server_default=text("'Pendiente'"))
+    AceptaTerminos = Column(Boolean, nullable=False, default=False, server_default=text("0"))
+    FechaSolicitud = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     FechaRespuesta = Column(DateTime, nullable=True)
     ObservacionAdmin = Column(String(500), nullable=True)
 
@@ -302,11 +302,11 @@ class Cita(Base):
     UbicacionID = Column(Integer, ForeignKey("UBICACION_FISICA.UbicacionID"), nullable=True)
     ReservaID = Column(Integer, ForeignKey("RESERVA_WEB.ReservaID"), nullable=True)
     FechaHora = Column(DateTime, nullable=False)
-    DuracionMinutos = Column(Integer, nullable=False, default=30)
-    EstadoCita = Column(String(30), nullable=False, default="Programada")
+    DuracionMinutos = Column(Integer, nullable=False, default=30, server_default=text("30"))
+    EstadoCita = Column(String(30), nullable=False, default="Programada", server_default=text("'Programada'"))
     MotivoConsulta = Column(Text, nullable=True)
     Observaciones = Column(Text, nullable=True)
-    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now)
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     CreadoPorUsuarioID = Column(Integer, ForeignKey("USUARIO.UsuarioID"), nullable=True)
 
     paciente = relationship("Paciente", back_populates="citas")
@@ -330,15 +330,15 @@ class Admision(Base):
     EnfermeroID = Column(Integer, ForeignKey("ENFERMERO.EnfermeroID"), nullable=True)
     HabitacionID = Column(Integer, ForeignKey("HABITACION.HabitacionID"), nullable=False)
     CitaID = Column(Integer, ForeignKey("CITA.CitaID"), nullable=True)
-    FechaIngreso = Column(DateTime, nullable=False, default=datetime.now)
+    FechaIngreso = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     MotivoIngreso = Column(Text, nullable=False)
     DiagnosticoIngreso = Column(Text, nullable=True)
     FechaAlta = Column(DateTime, nullable=True)
     DiagnosticoAlta = Column(Text, nullable=True)
     TipoAlta = Column(String(50), nullable=True)
-    Estado = Column(String(30), nullable=False, default="Activa")
+    Estado = Column(String(30), nullable=False, default="Activa", server_default=text("'Activa'"))
     Observaciones = Column(Text, nullable=True)
-    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now)
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     CreadoPorUsuarioID = Column(Integer, ForeignKey("USUARIO.UsuarioID"), nullable=True)
 
     paciente = relationship("Paciente", back_populates="admisiones")
@@ -367,7 +367,7 @@ class HistoriaClinica(Base):
     Tratamiento = Column(Text, nullable=False)
     Prescripcion = Column(Text, nullable=True)
     Observaciones = Column(Text, nullable=True)
-    FechaRegistro = Column(DateTime, nullable=False, default=datetime.now)
+    FechaRegistro = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
 
     paciente = relationship("Paciente", back_populates="historias")
     medico = relationship("Medico", back_populates="historias")
@@ -386,7 +386,7 @@ class DocumentoAdjunto(Base):
     TipoArchivo = Column(String(50), nullable=False)
     TamanoKB = Column(Integer, nullable=True)
     Descripcion = Column(String(255), nullable=True)
-    FechaSubida = Column(DateTime, nullable=False, default=datetime.now)
+    FechaSubida = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
     SubidoPorUsuarioID = Column(Integer, ForeignKey("USUARIO.UsuarioID"), nullable=True)
 
     historial = relationship("HistoriaClinica", back_populates="documentos")

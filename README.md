@@ -140,6 +140,9 @@ Gestión de acceso para personal administrativo (`USUARIO`) y pacientes (`PACIEN
 | Rol | Email | Contraseña |
 |-----|-------|------------|
 | Administrador | `admin@clinix.com` | `admin123` |
+| Médico demo | `alberto.rivera@sanpablo.com` | `clinix123` |
+| Enfermero demo | `maria.gomez@sanpablo.com` | `clinix123` |
+| Paciente demo | `juan.perez@gmail.com` | `paciente123` |
 
 **Roles:**
 - **Administrador** — Control total
@@ -228,13 +231,14 @@ Métricas agregadas y actividades recientes.
 
 ### Seed Data
 
-Dos etapas:
-1. **`database/init.sql`** — Esquema DDL (CREATE TABLE, vistas, constraints)
-2. **`database/seed_data.sql`** (opcional) — 3 clínicas, 10 especialidades, 4 roles, 10 departamentos, 16 ubicaciones, 8 habitaciones, 29 usuarios, 22 médicos, 4 enfermeros, 10 pacientes, 3 reservas, 14 citas, 2 admisiones, 6 HC, 4 documentos
+En desarrollo se usa SQLite por defecto. Al iniciar el backend por primera vez, SQLAlchemy crea
+`backend/clinix.db` y carga automáticamente `database/seed_data.sql`: 3 clínicas,
+10 especialidades, 22 médicos, 4 enfermeros, 10 pacientes, reservas, citas,
+admisiones, historias clínicas y auditoría. Los placeholders de contraseña se
+reemplazan por hashes bcrypt funcionales.
 
-Al iniciar el backend, si la tabla `ROLE` está vacía, se auto-siembra: 1 clínica, 4 roles, admin por defecto.
-
-> ⚠️ Las contraseñas en `seed_data.sql` son placeholders. Los únicos usuarios funcionales son los creados por `init_seed_data()`.
+SQL Server sigue soportado configurando `DATABASE_URL`; para una instalación manual
+se conservan `database/init.sql` y `database/seed_data.sql`.
 
 ---
 
@@ -255,52 +259,50 @@ Al iniciar el backend, si la tabla `ROLE` está vacía, se auto-siembra: 1 clín
 
 ### Prerrequisitos
 
-- Python ≥ 3.11
+- Python 3.11 o 3.12
 - Node.js ≥ 18
-- SQL Server con ODBC Driver 17+
+- PowerShell 5+ en Windows
 
-### Backend
+SQL Server es opcional. Para desarrollo local no hace falta instalar ningún servidor
+de base de datos.
 
-```bash
-# 1. Asegurar SQL Server con DB "Clinix" creada
-sqlcmd -S localhost -i database/init.sql
-sqlcmd -S localhost -i database/seed_data.sql    # datos de prueba opcionales
+### Instalación automática en Windows
 
-# 2. Verificar .env (incluido en el repo)
-# DATABASE_URL=mssql+pyodbc://@localhost/Clinix?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes
+```powershell
+.\setup.ps1
+.\run-dev.ps1
+```
 
-# 3. Instalar e iniciar
+Servicios:
+
+- Portal público: `http://localhost:5174`
+- Portal administrativo: `http://localhost:5175`
+- API: `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+
+### Instalación manual
+
+```powershell
 cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-API en `http://localhost:8000`, Swagger en `/docs`.
+En otras terminales:
 
-### Frontend
-
-```bash
-# Portal Administrativo
+```powershell
 cd frontend/admin
-npm install
-npm run dev          # http://localhost:5175
+npm ci
+npm run dev
 
-# Portal Público
 cd frontend/public
-
-# Copiar y configurar variables de entorno
-cp .env.example .env
-
-npm install
-npm run dev          # http://localhost:5174
+npm ci
+npm run dev
 ```
 
-> **Variables de entorno del portal público:**
-> | Variable | Descripción | Ejemplo |
-> |----------|-------------|---------|
-> | `VITE_PUBLIC_ADMIN_URL` | URL del portal administrativo | `http://localhost:5175` |
+Las variables disponibles están documentadas en los archivos `.env.example` de cada
+aplicación. `VITE_API_URL` permite cambiar la URL de la API.
 
 ---
 
@@ -310,8 +312,17 @@ npm run dev          # http://localhost:5174
 |------|--------|-------------|
 | `/dashboard` | DashboardPage | Métricas y actividad reciente |
 | `/bandeja` | BandejaRecepcion | Reservas web pendientes de revisión |
+| `/doctores` | DoctoresPage | CRUD de médicos y horarios |
+| `/enfermeras` | EnfermerasPage | CRUD de personal de enfermería |
+| `/pacientes` | PacientesPage | CRUD, detalle e historias clínicas |
+| `/especialidades` | EspecialidadesPage | CRUD de especialidades |
 | `/citas` | AdmisionCitas | CRUD de citas (admisión directa) |
+| `/reservas` | BandejaRecepcion | Revisión, asignación, conversión y rechazo |
 | `/habitaciones` | PanelCuartos | Grid de cuartos + crear/editar |
+| `/admisiones` | AdmisionesPage | Ingreso hospitalario y alta médica |
+| `/auditoria` | AuditoriaPage | Logs con filtros y paginación |
+| `/panel/doctor` | PanelMedicoPage | Agenda y pacientes hospitalizados |
+| `/panel/enfermeria` | PanelEnfermeriaPage | Pacientes asignados |
 | `/departamentos` | DepartamentosPage | CRUD de departamentos |
 | `/ubicaciones` | UbicacionesPage | CRUD de ubicaciones físicas |
 
@@ -332,6 +343,8 @@ Endpoint principales por módulo:
 | Habitaciones | `CRUD /habitaciones` |
 | Admisiones | `CRUD /admisiones`, `POST /alta` |
 | Dashboard | `GET /dashboard`, `GET /dashboard/metricas` |
+| Auditoría | `GET /auditoria` |
+| Paneles | `GET /medico/mis-citas`, `GET /medico/mis-admisiones`, `GET /enfermero/mis-pacientes` |
 | Público | `GET /public/especialidades`, `GET /public/medicos`, `POST /public/reservas`, `GET /public/mis-reservas` |
 
 ---
@@ -354,6 +367,9 @@ Endpoint principales por módulo:
 - [x] Tests de integración (pytest) — auth, reserva, admisión
 - [x] Refactor a Clean Architecture/DDD: domain, application, infrastructure layers
 - [x] Seed data completo en `database/seed_data.sql`
+- [x] Auto-seed funcional para SQLite con credenciales demo
+- [x] Panel Admin completo: médicos, enfermería, pacientes, especialidades, reservas, admisiones, auditoría y paneles por rol
+- [x] Scripts `setup.ps1` y `run-dev.ps1`
 
 ## Pendiente
 
@@ -361,7 +377,6 @@ Endpoint principales por módulo:
 - [ ] Subida real de archivos (Blob Storage / multipart)
 - [ ] API Gateway (Ocelot, Kong)
 - [ ] Docker y docker-compose
-- [ ] Páginas restantes del Admin (doctores, enfermeros, pacientes, especialidades, reservas, admisiones, auditoría, paneles)
 - [ ] Migración a Alembic
 - [ ] Tests unitarios de dominio (pytest)
 - [ ] Refactor: services legacy → repositorios + UoW

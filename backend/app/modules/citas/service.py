@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, date, time, timedelta
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func as sa_func
 
 from app.core.audit import registrar_auditoria
 from app.core.email_sender import send_appointment_confirmation
@@ -139,7 +138,10 @@ class ReservaService:
             motivo_consulta=data.motivo_consulta,
             acepta_terminos=data.acepta_terminos,
         )
-        domain.validar_terminos()
+        try:
+            domain.validar_terminos()
+        except ValueError as exc:
+            raise ConflictError(str(exc)) from exc
         saved = self.uow.reservas.save(domain)
         self.uow.session.commit()
         try:
@@ -167,6 +169,10 @@ class ReservaService:
             ReservaMapper.update_orm(domain, orm)
         if data.observacion_admin is not None:
             orm.ObservacionAdmin = data.observacion_admin
+        if data.medico_id is not None:
+            orm.MedicoID = data.medico_id
+        if data.fecha_hora_deseada is not None:
+            orm.FechaHoraDeseada = data.fecha_hora_deseada
         if data.estado is not None:
             orm.FechaRespuesta = datetime.now()
         try:
@@ -321,8 +327,11 @@ class CitaService:
             Cita.MedicoID == data.medico_id,
             Cita.EstadoCita.in_(["Programada", "Confirmada", "En curso"]),
             Cita.FechaHora < new_end,
-            sa_func.DATEADD(sa_func.MINUTE, Cita.DuracionMinutos, Cita.FechaHora) > new_start,
-        ).first()
+        ).all()
+        conflict = next((
+            existing for existing in conflict
+            if existing.FechaHora + timedelta(minutes=existing.DuracionMinutos) > new_start
+        ), None)
         if conflict:
             raise ConflictError("Doctor already has an appointment at this time")
 

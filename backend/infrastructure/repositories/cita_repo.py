@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
@@ -45,18 +47,20 @@ class SQLAlchemyCitaRepository(CitaRepository):
     def find_conflicts(
         self, medico_id: int, fecha_hora: datetime, duracion_minutos: int, exclude_id: Optional[int]
     ) -> list[Cita]:
-        from sqlalchemy import func as sa_func
         new_start = fecha_hora
         new_end = fecha_hora + timedelta(minutes=duracion_minutos)
         query = self.session.query(CitaORM).filter(
             CitaORM.MedicoID == medico_id,
             CitaORM.EstadoCita.in_(["Programada", "Confirmada", "En curso"]),
             CitaORM.FechaHora < new_end,
-            sa_func.DATEADD(sa_func.MINUTE, CitaORM.DuracionMinutos, CitaORM.FechaHora) > new_start,
         )
         if exclude_id:
             query = query.filter(CitaORM.CitaID != exclude_id)
-        return [CitaMapper.to_domain(o) for o in query.all()]
+        items = [
+            item for item in query.all()
+            if item.FechaHora + timedelta(minutes=item.DuracionMinutos) > new_start
+        ]
+        return [CitaMapper.to_domain(o) for o in items]
 
     def find_by_medico_fecha(self, medico_id: int, fecha: date) -> list[Cita]:
         items = self.session.query(CitaORM).filter(

@@ -243,9 +243,9 @@ export interface DashboardResponse {
 // --- Auditoría ---
 export interface LogAuditoria {
   log_id: number;
-  usuario_id: number;
-  usuario_nombre: string;
-  tabla_afectada: string;
+  usuario_id: number | null;
+  usuario_nombre: string | null;
+  tabla_afectada: string | null;
   registro_id: number | null;
   accion: string;
   detalle: string | null;

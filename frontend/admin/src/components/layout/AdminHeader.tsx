@@ -1,12 +1,14 @@
 import { AppBar, Toolbar, Typography, Avatar, IconButton } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
 
 const DRAWER_WIDTH = 260;
 const APPBAR_HEIGHT = 56;
 
 export default function AdminHeader() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const avatarLetter = user?.nombre
     ? user.nombre.split(' ').pop()?.charAt(0).toUpperCase() ?? 'U'
@@ -31,7 +33,7 @@ export default function AdminHeader() {
         <Avatar sx={{ width: 32, height: 32, bgcolor: '#1565C0', fontSize: 14, fontWeight: 700 }}>
           {avatarLetter}
         </Avatar>
-        <IconButton onClick={() => {}} size="small" sx={{ color: 'text.secondary' }}>
+        <IconButton onClick={() => { logout(); navigate('/login'); }} size="small" sx={{ color: 'text.secondary' }}>
           <LogoutIcon fontSize="small" />
         </IconButton>
       </Toolbar>

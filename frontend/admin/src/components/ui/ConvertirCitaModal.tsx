@@ -7,7 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import api from '../../services/api';
-import type { ReservaWebOut, UbicacionFisica } from '../../types';
+import type { Medico, ReservaWebOut, UbicacionFisica } from '../../types';
 import { DialogSection, InfoField } from './DialogSection';
 
 interface ConvertirCitaModalProps {
@@ -20,6 +20,8 @@ interface ConvertirCitaModalProps {
 
 export default function ConvertirCitaModal({ open, onClose, reserva, onConvertida, departamentos }: ConvertirCitaModalProps) {
   const [ubicaciones, setUbicaciones] = useState<UbicacionFisica[]>([]);
+  const [medicos, setMedicos] = useState<Medico[]>([]);
+  const [medicoId, setMedicoId] = useState(0);
   const [departamentoId, setDepartamentoId] = useState(0);
   const [ubicacionId, setUbicacionId] = useState(0);
   const [observaciones, setObservaciones] = useState('');
@@ -38,10 +40,15 @@ export default function ConvertirCitaModal({ open, onClose, reserva, onConvertid
       setUbicacionId(0);
       setDepartamentoId(0);
       setObservaciones('');
+      setMedicoId(reserva?.medico_id ?? 0);
       setSnackbar(null);
       fetchUbicaciones();
+      if (reserva?.especialidad_id) {
+        api.get<{ items: Medico[] }>(`/medicos?activo=true&especialidad_id=${reserva.especialidad_id}`)
+          .then(({ data }) => setMedicos(data.items));
+      }
     }
-  }, [open]);
+  }, [open, reserva]);
 
   const handleDepartamentoChange = (id: number) => {
     setDepartamentoId(id);
@@ -50,9 +57,12 @@ export default function ConvertirCitaModal({ open, onClose, reserva, onConvertid
   };
 
   const handleSubmit = async () => {
-    if (!reserva || ubicacionId === 0) return;
+    if (!reserva || ubicacionId === 0 || medicoId === 0) return;
     setLoading(true);
     try {
+      if (medicoId !== reserva.medico_id) {
+        await api.put(`/reservas/${reserva.reserva_id}`, { medico_id: medicoId });
+      }
       await api.post(`/reservas/${reserva.reserva_id}/convertir`, {
         ubicacion_id: ubicacionId,
         observaciones: observaciones || undefined,
@@ -86,6 +96,17 @@ export default function ConvertirCitaModal({ open, onClose, reserva, onConvertid
                 <Grid size={{ xs: 12 }}><InfoField label="Motivo consulta" value={reserva?.motivo_consulta ?? '-'} /></Grid>
               </Grid>
             </DialogSection>
+            <FormControl fullWidth required>
+              <InputLabel>Médico asignado</InputLabel>
+              <Select value={medicoId} label="Médico asignado" onChange={(e) => setMedicoId(Number(e.target.value))}>
+                <MenuItem value={0} disabled>Seleccione un médico</MenuItem>
+                {medicos.map((medico) => (
+                  <MenuItem key={medico.medico_id} value={medico.medico_id}>
+                    {medico.nombre} {medico.apellido} — {medico.especialidad}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <DialogSection icon={<LocationOnIcon />} title="Ubicación de la Cita">
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <FormControl fullWidth>
@@ -130,7 +151,7 @@ export default function ConvertirCitaModal({ open, onClose, reserva, onConvertid
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <Button onClick={onClose} sx={{ color: '#64748b' }}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={ubicacionId === 0 || loading}
+          <Button variant="contained" onClick={handleSubmit} disabled={ubicacionId === 0 || medicoId === 0 || loading}
             sx={{ bgcolor: '#1565C0', borderRadius: 2, px: 3, '&:hover': { bgcolor: '#0D47A1' } }}>
             {loading ? 'Convirtiendo...' : 'Confirmar Conversión'}
           </Button>

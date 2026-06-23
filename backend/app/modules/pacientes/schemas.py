@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PacienteCreate(BaseModel):
@@ -31,6 +31,8 @@ class PacienteUpdate(BaseModel):
 
 
 class PacienteResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     paciente_id: int
     clinical_id: int
     dni: str
@@ -46,8 +48,6 @@ class PacienteResponse(BaseModel):
     activo: bool
     fecha_registro: datetime
 
-    class Config:
-        from_attributes = True
 
 
 class PacienteListResponse(BaseModel):
@@ -91,6 +91,8 @@ class DocumentoAdjuntoCreate(BaseModel):
 
 
 class DocumentoAdjuntoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     documento_id: int
     historial_id: int
     blob_url: str
@@ -100,11 +102,11 @@ class DocumentoAdjuntoResponse(BaseModel):
     descripcion: str | None = None
     fecha_subida: datetime
 
-    class Config:
-        from_attributes = True
 
 
 class HistoriaClinicaResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     historial_id: int
     paciente_id: int
     medico_id: int
@@ -118,6 +120,3 @@ class HistoriaClinicaResponse(BaseModel):
     fecha_registro: datetime
     medico: HistoriaClinicaMedico | None = None
     documentos: list[DocumentoAdjuntoResponse] | None = None
-
-    class Config:
-        from_attributes = True

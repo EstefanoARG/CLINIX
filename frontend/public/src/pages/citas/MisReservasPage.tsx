@@ -17,7 +17,7 @@ export default function MisReservasPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      api.get<{ items: ReservaWeb[] }>('/public/mis-reservas').then(({ data }) => setReservas(data.items ?? data as unknown as ReservaWeb[]));
+      api.get<ReservaWeb[]>('/public/mis-reservas').then(({ data }) => setReservas(data));
     }
   }, [isAuthenticated]);
 

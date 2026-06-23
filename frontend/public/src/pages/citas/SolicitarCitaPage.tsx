@@ -37,7 +37,7 @@ export default function SolicitarCitaPage() {
   const [exito, setExito] = useState(false);
 
   useEffect(() => {
-    api.get<Especialidad[]>('/especialidades').then(({ data }) => setEspecialidades(data));
+    api.get<Especialidad[]>('/public/especialidades').then(({ data }) => setEspecialidades(data));
     const medParam = searchParams.get('medico');
     if (medParam) setMedicoId(Number(medParam));
   }, []);

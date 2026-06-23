@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HabitacionCreate(BaseModel):
@@ -18,6 +18,8 @@ class HabitacionUpdate(BaseModel):
 
 
 class HabitacionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     habitacion_id: int
     departamento_id: int
     numero: str
@@ -27,8 +29,6 @@ class HabitacionResponse(BaseModel):
     estado: str
     departamento_nombre: str | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class AdmisionCreate(BaseModel):
@@ -55,6 +55,8 @@ class AltaRequest(BaseModel):
 
 
 class AdmisionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     admision_id: int
     paciente_id: int
     medico_id: int
@@ -74,6 +76,3 @@ class AdmisionResponse(BaseModel):
     medico_nombre: str | None = None
     enfermero_nombre: str | None = None
     habitacion_numero: str | None = None
-
-    class Config:
-        from_attributes = True

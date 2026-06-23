@@ -72,6 +72,26 @@ def mis_pacientes_enfermero(db: DbSession, current_user = require_role(["Enferme
     return AdmisionService(db).list_by_enfermero(enfermero.EnfermeroID)
 
 
+@router.get("/medico/mis-admisiones", response_model=dict)
+def mis_admisiones_medico(
+    db: DbSession,
+    current_user=require_role(["Médico"]),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    estado: str | None = "Activa",
+):
+    from app.models import Medico
+    medico = db.query(Medico).filter(Medico.UsuarioID == current_user.UsuarioID).first()
+    if not medico:
+        raise HTTPException(status_code=404, detail="Medico profile not found")
+    return AdmisionService(db).list(
+        skip=skip,
+        limit=limit,
+        estado=estado,
+        medico_id=medico.MedicoID,
+    )
+
+
 @router.post("/admisiones/{admision_id}/alta", response_model=AdmisionResponse)
 def dar_alta(admision_id: int, data: AltaRequest, db: DbSession, _ = require_role(["Administrador", "Médico"])):
     return AdmisionService(db).dar_alta(admision_id, data)
