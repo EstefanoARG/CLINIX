@@ -240,6 +240,22 @@ reemplazan por hashes bcrypt funcionales.
 SQL Server sigue soportado configurando `DATABASE_URL`; para una instalación manual
 se conservan `database/init.sql` y `database/seed_data.sql`.
 
+### Migraciones
+
+Para BD existentes (con datos reales), los cambios incrementales están en scripts numerados
+en `backend/database/`:
+
+| Script | Descripción |
+|--------|-------------|
+| `migration_001_cie10.sql` | Agrega tabla `CIE10_DIAGNOSTICO` y sus ~170 códigos de MINSA Perú por especialidad |
+
+Cada migración es **idempotente** (`IF NOT EXISTS` / `CREATE TABLE IF NOT EXISTS`) y puede
+ejecutarse contra BD con datos sin riesgo de pérdida:
+
+```sql
+sqlcmd -S localhost -d Clinix -i backend/database/migration_001_cie10.sql
+```
+
 ---
 
 ## Seguridad
@@ -377,7 +393,7 @@ Endpoint principales por módulo:
 - [ ] Subida real de archivos (Blob Storage / multipart)
 - [ ] API Gateway (Ocelot, Kong)
 - [ ] Docker y docker-compose
-- [ ] Migración a Alembic
+- [ ] Migración a Alembic (actualmente se usan scripts SQL manuales `migration_NNN_*.sql`)
 - [ ] Tests unitarios de dominio (pytest)
 - [ ] Refactor: services legacy → repositorios + UoW
 

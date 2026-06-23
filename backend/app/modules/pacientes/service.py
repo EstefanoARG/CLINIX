@@ -100,7 +100,7 @@ class PacienteService:
         if activo is not None:
             query = query.filter(Paciente.Activo == activo)
         total = query.count()
-        items = query.order_by(Paciente.Apellido, Paciente.Nombre).offset(skip).limit(limit).all()
+        items = query.order_by(Paciente.FechaRegistro.desc()).offset(skip).limit(limit).all()
         return {"items": [_paciente_to_dict(p) for p in items], "total": total}
 
     def search(self, q: str, skip: int = 0, limit: int = 100) -> dict:
@@ -111,6 +111,7 @@ class PacienteService:
             | Paciente.Apellido.ilike(pattern)
             | Paciente.Email.ilike(pattern)
         )
+        query = query.order_by(Paciente.FechaRegistro.desc())
         total = query.count()
         items = query.offset(skip).limit(limit).all()
         return {"items": [_paciente_to_dict(p) for p in items], "total": total}

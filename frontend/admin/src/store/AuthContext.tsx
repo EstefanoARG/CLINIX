@@ -19,7 +19,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('access_token');
+    if (localStorage.getItem('access_token') && !sessionStorage.getItem('access_token')) {
+      sessionStorage.setItem('access_token', localStorage.getItem('access_token')!);
+      sessionStorage.setItem('refresh_token', localStorage.getItem('refresh_token') ?? '');
+      localStorage.clear();
+    }
+    const storedToken = sessionStorage.getItem('access_token');
     if (storedToken) {
       setToken(storedToken);
       api.get('/auth/me')
@@ -33,8 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (req: LoginRequest) => {
     const { data } = await api.post<TokenResponse>('/auth/login', req);
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    sessionStorage.setItem('access_token', data.access_token);
+    sessionStorage.setItem('refresh_token', data.refresh_token);
     setToken(data.access_token);
     setUser({
       usuario_id: data.user_id,
@@ -43,12 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: '',
       role: data.role,
       activo: true,
+      medico_id: data.medico_id,
     });
     return data.role;
   };
 
   const logout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     setUser(null);
     setToken(null);
   };

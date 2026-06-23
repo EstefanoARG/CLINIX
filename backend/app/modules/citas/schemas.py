@@ -104,6 +104,27 @@ class RechazarPayload(BaseModel):
     motivo_rechazo: str = Field(..., min_length=1, max_length=500)
 
 
+class AgendaCitaItem(BaseModel):
+    cita_id: int
+    paciente_id: int
+    paciente_nombre: str
+    paciente_dni: str
+    fecha_hora: datetime
+    duracion_minutos: int
+    estado_cita: str
+    motivo_consulta: str | None = None
+    ubicacion_nombre: str | None = None
+    especialidad_nombre: str | None = None
+    tiene_historia: bool = False
+
+
+class AgendaResponse(BaseModel):
+    medico_id: int
+    medico_nombre: str
+    fecha: str
+    citas: list[AgendaCitaItem]
+
+
 class DisponibilidadRequest(BaseModel):
     medico_id: int
     fecha: str
@@ -119,3 +140,17 @@ class DisponibilidadResponse(BaseModel):
     medico_id: int
     fecha: str
     slots: list[DisponibilidadSlot]
+    dias_atencion: list[str] = []
+    mensaje: str = ""
+
+
+class PacienteMinResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    paciente_id: int
+    dni: str
+    nombre: str
+    apellido: str
+    telefono: str | None = None
+    email: str | None = None
+    fecha_registro: datetime | None = None

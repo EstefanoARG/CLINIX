@@ -24,9 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('access_token');
-    const storedId = localStorage.getItem('paciente_id');
-    const storedName = localStorage.getItem('paciente_nombre');
+    if (localStorage.getItem('access_token') && !sessionStorage.getItem('access_token')) {
+      sessionStorage.setItem('access_token', localStorage.getItem('access_token')!);
+      sessionStorage.setItem('refresh_token', localStorage.getItem('refresh_token') ?? '');
+      sessionStorage.setItem('paciente_id', localStorage.getItem('paciente_id') ?? '');
+      sessionStorage.setItem('paciente_nombre', localStorage.getItem('paciente_nombre') ?? '');
+      localStorage.clear();
+    }
+    const storedToken = sessionStorage.getItem('access_token');
+    const storedId = sessionStorage.getItem('paciente_id');
+    const storedName = sessionStorage.getItem('paciente_nombre');
     if (storedToken) {
       setToken(storedToken);
       setPacienteId(storedId ? Number(storedId) : null);
@@ -37,10 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginPaciente = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login/paciente', { email, password });
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
-    localStorage.setItem('paciente_id', String(data.user_id));
-    localStorage.setItem('paciente_nombre', data.nombre);
+    sessionStorage.setItem('access_token', data.access_token);
+    sessionStorage.setItem('refresh_token', data.refresh_token);
+    sessionStorage.setItem('paciente_id', String(data.user_id));
+    sessionStorage.setItem('paciente_nombre', data.nombre);
     setToken(data.access_token);
     setPacienteId(data.user_id);
     setNombre(data.nombre);
@@ -51,17 +58,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string; password: string; telefono?: string;
   }) => {
     const { data } = await api.post('/auth/register', { ...req, acepta_terminos: true });
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
-    localStorage.setItem('paciente_id', String(data.user_id));
-    localStorage.setItem('paciente_nombre', req.nombre);
+    sessionStorage.setItem('access_token', data.access_token);
+    sessionStorage.setItem('refresh_token', data.refresh_token);
+    sessionStorage.setItem('paciente_id', String(data.user_id));
+    sessionStorage.setItem('paciente_nombre', req.nombre);
     setToken(data.access_token);
     setPacienteId(data.user_id);
     setNombre(req.nombre);
   };
 
   const logout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     setToken(null);
     setPacienteId(null);
     setNombre(null);

@@ -14,7 +14,9 @@ from app.models import (
 from app.modules.citas.schemas import (
     ReservaWebCreate, ReservaWebUpdate,
     CitaCreate, CitaUpdate,
+    AgendaResponse, AgendaCitaItem,
 )
+from app.models import HistoriaClinica
 from domain.entities.reserva import ReservaWeb as ReservaWebDomain
 from domain.entities.cita import Cita as CitaDomain
 from domain.repositories import ReservaRepository, CitaRepository, PacienteRepository
@@ -390,6 +392,65 @@ class CitaService:
         registrar_auditoria(self.db, None, "CANCELAR_CITA",
                             f"Cita {cita_id} cancelada", "CITA", cita_id)
 
+    def get_agenda(self, medico_id: int, fecha: date) -> AgendaResponse:
+        medico = self.db.query(Medico).options(
+            joinedload(Medico.usuario),
+            joinedload(Medico.especialidad),
+        ).filter(Medico.MedicoID == medico_id).first()
+        if not medico:
+            raise NotFoundError("Medico not found")
+
+        citas = self.db.query(Cita).options(
+            joinedload(Cita.paciente),
+            joinedload(Cita.especialidad),
+            joinedload(Cita.ubicacion),
+        ).filter(
+            Cita.MedicoID == medico_id,
+            Cita.FechaHora >= datetime.combine(fecha, time.min),
+            Cita.FechaHora <= datetime.combine(fecha, time.max),
+        ).order_by(Cita.FechaHora).all()
+
+        historias_ids = set()
+        for c in citas:
+            if c.CitaID:
+                historias_ids.add(c.CitaID)
+
+        historias_existentes = set()
+        if historias_ids:
+            rows = self.db.query(HistoriaClinica.CitaID).filter(
+                HistoriaClinica.CitaID.in_(historias_ids)
+            ).all()
+            historias_existentes = {r[0] for r in rows}
+
+        medico_nombre = f"{medico.usuario.Nombre} {medico.usuario.Apellido}" if medico.usuario else ""
+
+        items = []
+        for c in citas:
+            paciente_nombre = f"{c.paciente.Nombre} {c.paciente.Apellido}" if c.paciente else ""
+            paciente_dni = c.paciente.DNI if c.paciente else ""
+            ubicacion_nombre = c.ubicacion.Nombre if c.ubicacion else None
+            especialidad_nombre = c.especialidad.NombreEspecialidad if c.especialidad else None
+            items.append(AgendaCitaItem(
+                cita_id=c.CitaID,
+                paciente_id=c.PacienteID,
+                paciente_nombre=paciente_nombre,
+                paciente_dni=paciente_dni,
+                fecha_hora=c.FechaHora,
+                duracion_minutos=c.DuracionMinutos,
+                estado_cita=c.EstadoCita,
+                motivo_consulta=c.MotivoConsulta,
+                ubicacion_nombre=ubicacion_nombre,
+                especialidad_nombre=especialidad_nombre,
+                tiene_historia=c.CitaID in historias_existentes,
+            ))
+
+        return AgendaResponse(
+            medico_id=medico_id,
+            medico_nombre=medico_nombre,
+            fecha=fecha.isoformat(),
+            citas=items,
+        )
+
     def get_disponibilidad(self, medico_id: int, fecha: date) -> dict:
         cache_key = f"disp:{medico_id}:{fecha.isoformat()}"
         cached = cache.get(cache_key)
@@ -400,15 +461,25 @@ class CitaService:
         if not medico:
             raise NotFoundError("Medico not found")
 
-        dia_semana = fecha.isoweekday()
-        horarios = self.db.query(HorarioMedico).filter(
+        todos_horarios = self.db.query(HorarioMedico).filter(
             HorarioMedico.MedicoID == medico_id,
-            HorarioMedico.DiaSemana == dia_semana,
             HorarioMedico.Activo == True,
         ).all()
 
-        if not horarios:
-            return {"medico_id": medico_id, "fecha": str(fecha), "slots": []}
+        DIAS = {1:"Lunes",2:"Martes",3:"Miércoles",4:"Jueves",5:"Viernes",6:"Sábado",7:"Domingo"}
+        dias_atencion = sorted(set(DIAS[h.DiaSemana] for h in todos_horarios),
+                               key=lambda d: list(DIAS.values()).index(d))
+
+        dia_semana = fecha.isoweekday()
+        horarios_hoy = [h for h in todos_horarios if h.DiaSemana == dia_semana]
+
+        mensaje = ""
+        if not horarios_hoy:
+            dias_str = ", ".join(dias_atencion)
+            mensaje = f"El médico no atiende los {DIAS.get(dia_semana, '').lower()}. Atiende: {dias_str}."
+            result = {"medico_id": medico_id, "fecha": str(fecha), "slots": [],
+                      "dias_atencion": dias_atencion, "mensaje": mensaje}
+            return result
 
         citas_del_dia = self.db.query(Cita).filter(
             Cita.MedicoID == medico_id,
@@ -423,7 +494,7 @@ class CitaService:
             occupied_slots.add(key)
 
         slots = []
-        for horario in horarios:
+        for horario in horarios_hoy:
             current = datetime.combine(fecha, horario.HoraInicio)
             end = datetime.combine(fecha, horario.HoraFin)
             while current + timedelta(minutes=horario.IntervaloCitas) <= end:
@@ -435,6 +506,11 @@ class CitaService:
                 })
                 current += timedelta(minutes=horario.IntervaloCitas)
 
-        result = {"medico_id": medico_id, "fecha": str(fecha), "slots": slots}
+        disponibles = sum(1 for s in slots if s["disponible"])
+        if disponibles == 0 and slots:
+            mensaje = "Todos los horarios están ocupados para esta fecha."
+
+        result = {"medico_id": medico_id, "fecha": str(fecha), "slots": slots,
+                  "dias_atencion": dias_atencion, "mensaje": mensaje}
         cache.set(cache_key, result, ttl_seconds=120)
         return result

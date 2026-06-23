@@ -9,7 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import api from '../../services/api';
-import type { HistoriaClinica, Medico, Paciente } from '../../types';
+import type { HistoriaClinica, Paciente } from '../../types';
 
 const EMPTY_FORM = {
   dni: '', nombre: '', apellido: '', fecha_nacimiento: '', genero: '',
@@ -24,9 +24,6 @@ export default function PacientesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [detail, setDetail] = useState<Paciente | null>(null);
   const [histories, setHistories] = useState<HistoriaClinica[]>([]);
-  const [medicos, setMedicos] = useState<Medico[]>([]);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyForm, setHistoryForm] = useState({ medico_id: 0, diagnostico: '', tratamiento: '', anamnesis: '', prescripcion: '' });
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
   const load = useCallback(() => {
@@ -35,17 +32,17 @@ export default function PacientesPage() {
       : '/pacientes?limit=500';
     api.get<{ items: Paciente[] }>(url)
       .then(({ data }) => setItems(data.items))
-      .catch(() => setMessage({ text: 'No se pudieron cargar los pacientes', error: true }));
+      .catch((error: any) => {
+        const detail = error?.response?.data?.detail;
+        const msg = typeof detail === 'string' ? detail : 'No se pudieron cargar los pacientes';
+        setMessage({ text: msg, error: true });
+      });
   }, [search]);
 
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
   }, [load]);
-
-  useEffect(() => {
-    api.get<{ items: Medico[] }>('/medicos?activo=true&limit=500').then(({ data }) => setMedicos(data.items));
-  }, []);
 
   const showForm = (item?: Paciente) => {
     setEditing(item ?? null);
@@ -73,7 +70,9 @@ export default function PacientesPage() {
       setMessage({ text: editing ? 'Paciente actualizado' : 'Paciente registrado' });
       load();
     } catch (error: any) {
-      setMessage({ text: error?.response?.data?.detail ?? 'No se pudo guardar', error: true });
+      const detail = error?.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail.map((e: any) => e.msg).join('; ') : 'No se pudo guardar';
+      setMessage({ text: msg, error: true });
     }
   };
 
@@ -88,18 +87,6 @@ export default function PacientesPage() {
     await api.delete(`/pacientes/${item.paciente_id}`);
     setMessage({ text: 'Paciente desactivado' });
     load();
-  };
-
-  const addHistory = async () => {
-    if (!detail) return;
-    try {
-      await api.post(`/pacientes/${detail.paciente_id}/historias`, historyForm);
-      setHistoryOpen(false);
-      await showDetail(detail);
-      setMessage({ text: 'Historia clínica registrada' });
-    } catch (error: any) {
-      setMessage({ text: error?.response?.data?.detail ?? 'No se pudo registrar la historia', error: true });
-    }
   };
 
   return (
@@ -154,10 +141,7 @@ export default function PacientesPage() {
           <Typography color="text.secondary" sx={{ mb: 2 }}>
             DNI: {detail?.dni} · Email: {detail?.email ?? '-'} · Teléfono: {detail?.telefono ?? '-'} · Alergias: {detail?.alergias ?? 'Ninguna registrada'}
           </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="h6">Historia clínica</Typography>
-            <Button size="small" variant="contained" onClick={() => setHistoryOpen(true)}>Nueva historia</Button>
-          </Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>Historia clínica</Typography>
           <Table size="small"><TableHead><TableRow><TableCell>Fecha</TableCell><TableCell>Médico ID</TableCell><TableCell>Diagnóstico</TableCell><TableCell>Tratamiento</TableCell><TableCell>Prescripción</TableCell></TableRow></TableHead>
             <TableBody>{histories.map((item) => <TableRow key={item.historial_id}><TableCell>{new Date(item.fecha_registro).toLocaleString()}</TableCell><TableCell>{item.medico_id}</TableCell><TableCell>{item.diagnostico}</TableCell><TableCell>{item.tratamiento}</TableCell><TableCell>{item.prescripcion ?? '-'}</TableCell></TableRow>)}</TableBody>
           </Table>
@@ -165,19 +149,6 @@ export default function PacientesPage() {
         <DialogActions><Button onClick={() => setDetail(null)}>Cerrar</Button></DialogActions>
       </Dialog>
 
-      <Dialog open={historyOpen} onClose={() => setHistoryOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Nueva historia clínica</DialogTitle>
-        <DialogContent sx={{ display: 'grid', gap: 2, pt: '16px !important' }}>
-          <FormControl required><InputLabel>Médico</InputLabel><Select label="Médico" value={historyForm.medico_id} onChange={(e) => setHistoryForm({ ...historyForm, medico_id: Number(e.target.value) })}>
-            <MenuItem value={0} disabled>Seleccione</MenuItem>{medicos.map((item) => <MenuItem key={item.medico_id} value={item.medico_id}>{item.nombre} {item.apellido}</MenuItem>)}
-          </Select></FormControl>
-          <TextField label="Anamnesis" multiline rows={2} value={historyForm.anamnesis} onChange={(e) => setHistoryForm({ ...historyForm, anamnesis: e.target.value })} />
-          <TextField label="Diagnóstico" required multiline value={historyForm.diagnostico} onChange={(e) => setHistoryForm({ ...historyForm, diagnostico: e.target.value })} />
-          <TextField label="Tratamiento" required multiline value={historyForm.tratamiento} onChange={(e) => setHistoryForm({ ...historyForm, tratamiento: e.target.value })} />
-          <TextField label="Prescripción" multiline value={historyForm.prescripcion} onChange={(e) => setHistoryForm({ ...historyForm, prescripcion: e.target.value })} />
-        </DialogContent>
-        <DialogActions><Button onClick={() => setHistoryOpen(false)}>Cancelar</Button><Button variant="contained" onClick={addHistory}>Guardar</Button></DialogActions>
-      </Dialog>
       <Snackbar open={!!message} autoHideDuration={4000} onClose={() => setMessage(null)}>
         {message ? <Alert severity={message.error ? 'error' : 'success'}>{message.text}</Alert> : undefined}
       </Snackbar>

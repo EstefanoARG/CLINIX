@@ -43,7 +43,21 @@ CREATE TABLE ESPECIALIDAD (
 );
 GO
 
--- 1.3 ROLE
+-- 1.3 CIE10_DIAGNOSTICO
+-- Catálogo de diagnósticos CIE-10 organizados por especialidad (MINSA Perú).
+CREATE TABLE CIE10_DIAGNOSTICO (
+    Codigo          VARCHAR(10)  NOT NULL,
+    EspecialidadID  INT          NOT NULL,
+    Descripcion     VARCHAR(300) NOT NULL,
+    Categoria       VARCHAR(150) NULL,
+    Activo          BIT          NOT NULL DEFAULT 1,
+    CONSTRAINT PK_CIE10_DIAGNOSTICO PRIMARY KEY (Codigo, EspecialidadID),
+    CONSTRAINT FK_CIE10_ESPECIALIDAD FOREIGN KEY (EspecialidadID)
+        REFERENCES ESPECIALIDAD(EspecialidadID)
+);
+GO
+
+-- 1.4 ROLE
 -- Roles del sistema: Administrador, Médico, Enfermero, Recepcionista.
 -- El paciente del portal público tiene su propia tabla de auth.
 CREATE TABLE ROLE (

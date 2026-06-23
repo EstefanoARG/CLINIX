@@ -11,6 +11,7 @@ from app.modules.pacientes.schemas import (
     DocumentoAdjuntoCreate, DocumentoAdjuntoResponse,
 )
 from app.modules.pacientes.service import PacienteService
+from app.models import Medico
 
 router = APIRouter(prefix="/api/v1/pacientes", tags=["Pacientes"])
 AdminOrMedico = require_role(["Administrador", "Médico", "Recepcionista"])
@@ -71,7 +72,16 @@ def list_historias(paciente_id: int, db: DbSession, _ = AdminOrMedico):
 
 
 @router.post("/{paciente_id}/historias", response_model=HistoriaClinicaResponse, status_code=201)
-def create_historia(paciente_id: int, data: HistoriaClinicaCreate, db: DbSession, _ = require_role(["Administrador", "Médico"])):
+def create_historia(
+    paciente_id: int,
+    data: HistoriaClinicaCreate,
+    db: DbSession,
+    current_user = require_role(["Administrador", "Médico"]),
+):
+    if data.medico_id == 0 and current_user.role.NombreRole == "Médico":
+        medico = db.query(Medico).filter(Medico.UsuarioID == current_user.UsuarioID).first()
+        if medico:
+            data.medico_id = medico.MedicoID
     service = PacienteService(db)
     return service.create_historia(paciente_id, data)
 

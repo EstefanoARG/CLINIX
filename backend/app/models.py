@@ -376,6 +376,18 @@ class HistoriaClinica(Base):
     documentos = relationship("DocumentoAdjunto", back_populates="historial", cascade="all, delete-orphan")
 
 
+class CIE10Diagnostico(Base):
+    __tablename__ = "CIE10_DIAGNOSTICO"
+
+    Codigo = Column(String(10), primary_key=True)
+    EspecialidadID = Column(Integer, ForeignKey("ESPECIALIDAD.EspecialidadID"), primary_key=True)
+    Descripcion = Column(String(300), nullable=False)
+    Categoria = Column(String(150), nullable=True)
+    Activo = Column(Boolean, nullable=False, default=True)
+
+    especialidad = relationship("Especialidad")
+
+
 class DocumentoAdjunto(Base):
     __tablename__ = "DOCUMENTO_ADJUNTO"
 

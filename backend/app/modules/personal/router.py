@@ -182,15 +182,16 @@ def delete_enfermero(enfermero_id: int, db: DbSession, _ = require_role(["Admini
 @router.get("/medicos/{medico_id}/horarios", response_model=list[HorarioMedicoResponse])
 def list_horarios(medico_id: int, db: DbSession, _ = AdminOrMedico):
     return HorarioMedicoService(db).list(medico_id)
-
 @router.post("/horarios", response_model=HorarioMedicoResponse, status_code=201)
-def create_horario(data: HorarioMedicoCreate, db: DbSession, _ = require_role(["Administrador"])):
+def create_horario(data: HorarioMedicoCreate, db: DbSession, _ = require_role(["Administrador", "Recepcionista"])):
     return HorarioMedicoService(db).create(data)
 
+
 @router.put("/horarios/{horario_id}", response_model=HorarioMedicoResponse)
-def update_horario(horario_id: int, data: HorarioMedicoUpdate, db: DbSession, _ = require_role(["Administrador"])):
+def update_horario(horario_id: int, data: HorarioMedicoUpdate, db: DbSession, _ = require_role(["Administrador", "Recepcionista"])):
     return HorarioMedicoService(db).update(horario_id, data)
 
+
 @router.delete("/horarios/{horario_id}", status_code=204)
-def delete_horario(horario_id: int, db: DbSession, _ = require_role(["Administrador"])):
+def delete_horario(horario_id: int, db: DbSession, _ = require_role(["Administrador", "Recepcionista"])):
     HorarioMedicoService(db).delete(horario_id)

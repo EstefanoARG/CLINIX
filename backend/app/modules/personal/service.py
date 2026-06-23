@@ -265,7 +265,7 @@ class MedicoService:
         if especialidad_id is not None:
             query = query.filter(Medico.EspecialidadID == especialidad_id)
         total = query.count()
-        items = [item for item in query.order_by(Medico.MedicoID).offset(skip).limit(limit).all()]
+        items = [item for item in query.order_by(Medico.MedicoID.desc()).offset(skip).limit(limit).all()]
         return {"items": [_medico_to_dict(m) for m in items], "total": total}
 
     def search(self, q: str, skip: int = 0, limit: int = 100) -> dict:
@@ -275,7 +275,7 @@ class MedicoService:
             | Usuario.Apellido.ilike(pattern)
             | Usuario.DNI.ilike(pattern)
             | Medico.NumeroColegiatura.ilike(pattern)
-        )
+        ).order_by(Medico.MedicoID.desc())
         total = query.count()
         items = query.offset(skip).limit(limit).all()
         return {"items": [_medico_to_dict(m) for m in items], "total": total}
@@ -362,6 +362,7 @@ class EnfermeroService:
         query = self._query_with_joins()
         if activo is not None:
             query = query.filter(Enfermero.Activo == activo)
+        query = query.order_by(Enfermero.EnfermeroID.desc())
         total = query.count()
         items = query.offset(skip).limit(limit).all()
         return {"items": [_enfermero_to_dict(e) for e in items], "total": total}
@@ -373,7 +374,7 @@ class EnfermeroService:
             | Usuario.Apellido.ilike(pattern)
             | Usuario.DNI.ilike(pattern)
             | Enfermero.NumeroLicencia.ilike(pattern)
-        )
+        ).order_by(Enfermero.EnfermeroID.desc())
         total = query.count()
         items = query.offset(skip).limit(limit).all()
         return {"items": [_enfermero_to_dict(e) for e in items], "total": total}

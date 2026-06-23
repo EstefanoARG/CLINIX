@@ -50,6 +50,8 @@ export interface DisponibilidadResponse {
   medico_id: number;
   fecha: string;
   slots: DisponibilidadSlot[];
+  dias_atencion: string[];
+  mensaje: string;
 }
 
 // --- Reserva Web ---

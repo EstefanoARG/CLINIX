@@ -11,7 +11,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { isAxiosError } from 'axios';
 import api from '../../services/api';
-import type { Especialidad, Medico, DisponibilidadSlot } from '../../types';
+import type { Especialidad, Medico, DisponibilidadResponse } from '../../types';
 import ClinixLogo from '../../components/ClinixLogo';
 
 interface FormState {
@@ -33,10 +33,12 @@ interface FormState {
 interface LoaderState {
   especialidades: Especialidad[];
   medicos: Medico[];
-  slots: DisponibilidadSlot[];
+  slots: DisponibilidadResponse['slots'];
   cargandoMedicos: boolean;
   cargandoSlots: boolean;
 }
+
+const DIAS_NOMBRES: Record<number, string> = {0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes',6:'Sábado'};
 
 const INITIAL_FORM: FormState = {
   nombres: '',
@@ -65,6 +67,8 @@ export default function SolicitudCita() {
   });
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [mensajeSlots, setMensajeSlots] = useState('');
+  const [diasAtencion, setDiasAtencion] = useState<string[]>([]);
   const [exito, setExito] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [terminosAbierto, setTerminosAbierto] = useState(false);
@@ -97,12 +101,19 @@ export default function SolicitudCita() {
   useEffect(() => {
     if (!form.medicoId) {
       setLoader(prev => ({ ...prev, slots: [], cargandoSlots: false }));
+      setMensajeSlots('');
+      setDiasAtencion([]);
       return;
     }
     setLoader(prev => ({ ...prev, cargandoSlots: true }));
     set('horario', '');
-    api.get<{ slots: DisponibilidadSlot[] }>(`/disponibilidad/${form.medicoId}?fecha=${fecha.format('YYYY-MM-DD')}`)
-      .then(({ data }) => setLoader(prev => ({ ...prev, slots: data.slots, cargandoSlots: false })))
+    setMensajeSlots('');
+    api.get<DisponibilidadResponse>(`/disponibilidad/${form.medicoId}?fecha=${fecha.format('YYYY-MM-DD')}`)
+      .then(({ data }) => {
+        setLoader(prev => ({ ...prev, slots: data.slots, cargandoSlots: false }));
+        setMensajeSlots(data.mensaje || '');
+        setDiasAtencion(data.dias_atencion || []);
+      })
       .catch(() => { setError('Error al cargar horarios'); setLoader(prev => ({ ...prev, cargandoSlots: false })); });
   }, [form.medicoId, fecha]);
 
@@ -289,7 +300,7 @@ export default function SolicitudCita() {
 
           <Box sx={{ p: 4 }}>
             <Grid container spacing={4}>
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid key="datos-personales" size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1565C0', mb: 2, pb: 1, borderBottom: '2px solid', borderColor: '#1565C0' }}>
                   Datos personales
                 </Typography>
@@ -336,7 +347,7 @@ export default function SolicitudCita() {
                 </FormControl>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid key="detalles-cita" size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1565C0', mb: 2, pb: 1, borderBottom: '2px solid', borderColor: '#1565C0' }}>
                   Detalles de la cita
                 </Typography>
@@ -384,6 +395,12 @@ export default function SolicitudCita() {
                   onChange={v => { setFecha(v ?? dayjs()); set('horario', ''); }}
                   disablePast
                   sx={{ mb: 1, width: '100%' }} />
+
+                {mensajeSlots && (
+                  <Alert severity="info" sx={{ mb: 1.5, fontSize: '0.85rem' }}>
+                    {mensajeSlots}
+                  </Alert>
+                )}
 
                 <FormControl fullWidth sx={{ mb: 2 }}
                   disabled={!form.medicoId || loader.cargandoSlots}
