@@ -18,6 +18,7 @@ from app.modules.citas.router import router as citas_router
 from app.modules.admisiones.router import router as admisiones_router
 from app.modules.dashboard.router import router as dashboard_router
 from app.modules.auditoria.router import router as auditoria_router
+from app.modules.cie10.router import router as cie10_router
 
 
 def init_seed_data():
@@ -66,6 +67,7 @@ app.include_router(citas_router)
 app.include_router(admisiones_router)
 app.include_router(dashboard_router)
 app.include_router(auditoria_router)
+app.include_router(cie10_router)
 
 
 @app.exception_handler(RequestValidationError)

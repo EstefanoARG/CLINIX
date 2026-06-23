@@ -11,6 +11,7 @@ export interface TokenResponse {
   user_id: number;
   nombre: string;
   role: string;
+  medico_id: number | null;
 }
 
 export interface UserResponse {
@@ -20,6 +21,7 @@ export interface UserResponse {
   email: string;
   role: string;
   activo: boolean;
+  medico_id: number | null;
 }
 
 // --- Paciente ---
@@ -235,9 +237,53 @@ export interface ActividadReciente {
   fecha: string;
 }
 
+export interface DoctorHoyItem {
+  medico_id: number;
+  nombre: string;
+  especialidad: string;
+  citas_programadas: number;
+  citas_completadas: number;
+}
+
+export interface PacienteNuevoItem {
+  paciente_id: number;
+  nombre: string;
+  dni: string;
+  fecha_registro: string;
+  tiene_cita: boolean;
+}
+
+export interface DashboardTablas {
+  doctores_hoy: DoctorHoyItem[];
+  pacientes_nuevos: PacienteNuevoItem[];
+}
+
 export interface DashboardResponse {
   metricas: DashboardMetricas;
   actividades: ActividadReciente[];
+  tablas: DashboardTablas;
+}
+
+// --- Agenda Médico ---
+export interface AgendaCitaItem {
+  cita_id: number;
+  paciente_id: number;
+  paciente_nombre: string;
+  paciente_dni: string;
+  fecha_hora: string;
+  duracion_minutos: number;
+  estado_cita: string;
+  motivo_consulta: string | null;
+  ubicacion_nombre: string | null;
+  especialidad_nombre: string | null;
+  tiene_historia: boolean;
+}
+
+export interface AgendaResponse {
+  medico_id: number;
+  medico_nombre: string;
+  fecha: string;
+  citas: AgendaCitaItem[];
 }
 
 // --- Auditoría ---

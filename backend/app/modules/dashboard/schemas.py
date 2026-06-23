@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from pydantic import BaseModel
 
 
@@ -20,6 +21,28 @@ class ActividadReciente(BaseModel):
     fecha: str
 
 
+class DoctorHoyItem(BaseModel):
+    medico_id: int
+    nombre: str
+    especialidad: str
+    citas_programadas: int = 0
+    citas_completadas: int = 0
+
+
+class PacienteNuevoItem(BaseModel):
+    paciente_id: int
+    nombre: str
+    dni: str
+    fecha_registro: str
+    tiene_cita: bool = False
+
+
+class DashboardTablas(BaseModel):
+    doctores_hoy: list[DoctorHoyItem] = []
+    pacientes_nuevos: list[PacienteNuevoItem] = []
+
+
 class DashboardResponse(BaseModel):
     metricas: DashboardMetricas
     actividades: list[ActividadReciente] = []
+    tablas: DashboardTablas = DashboardTablas()

@@ -9,7 +9,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import api from '../../services/api';
-import type { Especialidad, Medico, DisponibilidadSlot } from '../../types';
+import type { Especialidad, Medico, DisponibilidadResponse } from '../../types';
 
 const steps = ['Especialidad', 'Médico', 'Horario', 'Confirmar'];
 
@@ -19,7 +19,8 @@ export default function SolicitarCitaPage() {
   const [activeStep, setActiveStep] = useState(0);
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [medicos, setMedicos] = useState<Medico[]>([]);
-  const [slots, setSlots] = useState<DisponibilidadSlot[]>([]);
+  const [slots, setSlots] = useState<DisponibilidadResponse['slots']>([]);
+  const [mensajeSlots, setMensajeSlots] = useState('');
   const [fecha, setFecha] = useState(dayjs());
 
   const [especialidadId, setEspecialidadId] = useState<number | ''>('');
@@ -51,8 +52,11 @@ export default function SolicitarCitaPage() {
 
   useEffect(() => {
     if (medicoId && fecha) {
-      api.get<{ slots: DisponibilidadSlot[] }>(`/disponibilidad/${medicoId}?fecha=${fecha.format('YYYY-MM-DD')}`)
-        .then(({ data }) => setSlots(data.slots));
+      api.get<DisponibilidadResponse>(`/disponibilidad/${medicoId}?fecha=${fecha.format('YYYY-MM-DD')}`)
+        .then(({ data }) => {
+          setSlots(data.slots);
+          setMensajeSlots(data.mensaje || '');
+        });
     }
   }, [medicoId, fecha]);
 
@@ -172,6 +176,9 @@ export default function SolicitarCitaPage() {
                 disablePast
                 sx={{ mb: 3, width: '100%' }}
               />
+              {mensajeSlots && (
+                <Alert severity="info" sx={{ mb: 2, fontSize: '0.85rem' }}>{mensajeSlots}</Alert>
+              )}
               <Typography variant="subtitle2" gutterBottom>Horarios disponibles:</Typography>
               <Grid container spacing={1}>
                 {slots.filter((s) => s.disponible).map((s) => (

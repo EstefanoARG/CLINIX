@@ -46,8 +46,8 @@ class EstadoHabitacion(str, Enum):
 
 
 _CITA_TRANS: dict[EstadoCita, set[EstadoCita]] = {
-    EstadoCita.PROGRAMADA: {EstadoCita.CONFIRMADA, EstadoCita.CANCELADA},
-    EstadoCita.CONFIRMADA: {EstadoCita.EN_CURSO, EstadoCita.CANCELADA, EstadoCita.NO_ASISTIO},
+    EstadoCita.PROGRAMADA: {EstadoCita.CONFIRMADA, EstadoCita.COMPLETADA, EstadoCita.CANCELADA},
+    EstadoCita.CONFIRMADA: {EstadoCita.EN_CURSO, EstadoCita.COMPLETADA, EstadoCita.CANCELADA, EstadoCita.NO_ASISTIO},
     EstadoCita.EN_CURSO: {EstadoCita.COMPLETADA, EstadoCita.CANCELADA},
     EstadoCita.COMPLETADA: set(),
     EstadoCita.CANCELADA: set(),

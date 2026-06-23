@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 
 from app.models import Cita as CitaORM
 from domain.entities.cita import Cita
@@ -83,6 +83,6 @@ class SQLAlchemyCitaRepository(CitaRepository):
 
     def count_hoy(self) -> int:
         return self.session.query(func.count(CitaORM.CitaID)).filter(
-            func.date(CitaORM.FechaHora) == date.today(),
+            cast(CitaORM.FechaHora, Date) == date.today(),
             CitaORM.EstadoCita.in_(["Programada", "Confirmada", "En curso"]),
         ).scalar() or 0

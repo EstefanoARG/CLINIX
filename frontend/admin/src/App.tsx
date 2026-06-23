@@ -3,6 +3,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
 import { AuthProvider } from './store/AuthContext';
 import AdminLayout from './components/layout/AdminLayout';
+import DoctorLayout from './components/layout/DoctorLayout';
 import PrivateRoute from './components/auth/PrivateRoute';
 import LoginPage from './pages/auth/LoginPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
@@ -19,8 +20,10 @@ import EnfermerasPage from './pages/enfermeras/EnfermerasPage';
 import PacientesPage from './pages/pacientes/PacientesPage';
 import AdmisionesPage from './pages/admisiones/AdmisionesPage';
 import AuditoriaPage from './pages/auditoria/AuditoriaPage';
-import PanelMedicoPage from './pages/paneles/PanelMedicoPage';
 import PanelEnfermeriaPage from './pages/paneles/PanelEnfermeriaPage';
+import DoctorPacientesPage from './pages/paneles/DoctorPacientesPage';
+import DoctorHistorialPage from './pages/paneles/DoctorHistorialPage';
+import AgendaPage from './pages/agenda/AgendaPage';
 import { useAuth } from './store/AuthContext';
 
 function RoleHome() {
@@ -38,6 +41,7 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<PrivateRoute />}>
+        <Route path="/" element={<RoleHome />} />
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/bandeja" element={<BandejaRecepcion />} />
@@ -52,9 +56,12 @@ function AppRoutes() {
           <Route path="/reservas" element={<BandejaRecepcion />} />
           <Route path="/admisiones" element={<AdmisionesPage />} />
           <Route path="/auditoria" element={<AuditoriaPage />} />
-          <Route path="/panel/doctor" element={<PanelMedicoPage />} />
           <Route path="/panel/enfermeria" element={<PanelEnfermeriaPage />} />
-          <Route path="/" element={<RoleHome />} />
+        </Route>
+        <Route element={<DoctorLayout />}>
+          <Route path="/panel/doctor" element={<AgendaPage />} />
+          <Route path="/panel/doctor/pacientes" element={<DoctorPacientesPage />} />
+          <Route path="/panel/doctor/pacientes/:pacienteId/historial" element={<DoctorHistorialPage />} />
         </Route>
       </Route>
       <Route path="*" element={<RoleHome />} />

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 
 from app.models import Paciente as PacienteORM
 from domain.entities.paciente import Paciente
@@ -67,5 +67,5 @@ class SQLAlchemyPacienteRepository(PacienteRepository):
     def count_registrados_hoy(self) -> int:
         from datetime import date
         return self.session.query(func.count(PacienteORM.PacienteID)).filter(
-            func.date(PacienteORM.FechaRegistro) == date.today()
+            cast(PacienteORM.FechaRegistro, Date) == date.today()
         ).scalar() or 0

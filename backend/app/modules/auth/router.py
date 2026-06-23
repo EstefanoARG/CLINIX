@@ -44,7 +44,12 @@ def reset_password(request: ResetPasswordRequest, db: DbSession):
 
 
 @router.get("/me")
-def me(current_user: CurrentUser):
+def me(current_user: CurrentUser, db: DbSession):
+    from app.models import Medico
+    medico_id = None
+    medico = db.query(Medico).filter(Medico.UsuarioID == current_user.UsuarioID).first()
+    if medico:
+        medico_id = medico.MedicoID
     return UserResponse(
         usuario_id=current_user.UsuarioID,
         nombre=current_user.Nombre,
@@ -52,4 +57,5 @@ def me(current_user: CurrentUser):
         email=current_user.Email,
         role=current_user.role.NombreRole,
         activo=current_user.Activo,
+        medico_id=medico_id,
     )

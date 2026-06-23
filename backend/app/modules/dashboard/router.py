@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.core.dependencies import DbSession, require_role
 from app.modules.dashboard.schemas import DashboardResponse
@@ -8,8 +8,12 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
 
 
 @router.get("", response_model=DashboardResponse)
-def get_dashboard(db: DbSession, _ = require_role(["Administrador"])):
-    return DashboardService(db).get_dashboard()
+def get_dashboard(
+    db: DbSession,
+    _ = require_role(["Administrador"]),
+    periodo: str = Query("hoy", regex="^(hoy|semana|mes)$"),
+):
+    return DashboardService(db).get_dashboard(periodo)
 
 
 @router.get("/metricas", response_model=dict)

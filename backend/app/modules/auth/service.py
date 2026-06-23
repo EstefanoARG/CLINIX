@@ -20,6 +20,7 @@ class AuthService:
         self.uow = uow or UnitOfWork(db)
 
     def login_admin(self, request: LoginRequest) -> dict:
+        from app.models import Medico
         user = self.db.query(Usuario).filter(Usuario.Email == request.email).first()
         if not user or not user.Activo:
             raise CredentialsError("Invalid email or password")
@@ -28,6 +29,11 @@ class AuthService:
 
         user.UltimoAcceso = datetime.now()
         self.db.commit()
+
+        medico_id = None
+        medico = self.db.query(Medico).filter(Medico.UsuarioID == user.UsuarioID).first()
+        if medico:
+            medico_id = medico.MedicoID
 
         access = create_access_token({"sub": str(user.UsuarioID), "role": user.role.NombreRole})
         refresh = create_refresh_token({"sub": str(user.UsuarioID), "role": user.role.NombreRole})
@@ -38,6 +44,7 @@ class AuthService:
             "user_id": user.UsuarioID,
             "nombre": f"{user.Nombre} {user.Apellido}",
             "role": user.role.NombreRole,
+            "medico_id": medico_id,
         }
 
     def login_paciente(self, request: LoginRequest) -> dict:

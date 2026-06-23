@@ -13,6 +13,7 @@ class TokenResponse(BaseModel):
     user_id: int
     nombre: str
     role: str
+    medico_id: int | None = None
 
 
 class RefreshTokenRequest(BaseModel):
@@ -48,3 +49,4 @@ class UserResponse(BaseModel):
     email: str
     role: str
     activo: bool
+    medico_id: int | None = None
