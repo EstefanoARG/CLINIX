@@ -35,7 +35,7 @@ Sistema de gestión hospitalaria con **portal público** para pacientes (solicit
                         └──> [Event Bus] ──> [Notificaciones]*
 ```
 
-> *Notificaciones SMTP pendiente de configurar.*
+> *Notificaciones por email: confirmación de recepción, aprobación/rechazo y recordatorios automáticos.*
 
 ### Backend — Monolito Modular + DDD
 
@@ -396,10 +396,14 @@ Endpoint principales por módulo:
 - [x] **Módulo CIE-10** — ~170 códigos MINSA Perú por especialidad, Autocomplete en ficha clínica
 - [x] **sessionStorage** — Cada pestaña del navegador mantiene su propia sesión
 - [x] **Migraciones SQL** — Scripts idempotentes para BD existentes (`migration_NNN_*.sql`)
+- [x] **Sistema de Notificaciones por Email** — 5 plantillas HTML para eventos del sistema
+- [x] **Acuse de recibo de solicitud** — Email al paciente al crear una reserva web
+- [x] **Confirmación de cita** — Email al aprobar y convertir reserva en cita
+- [x] **Rechazo con motivo** — Email al rechazar una reserva con la observación del admin
+- [x] **Recordatorio automático** — APScheduler ejecuta tarea diaria a las 8:00 AM para citas del día siguiente
 
 ## Pendiente
 
-- [ ] Notificaciones asíncronas (RabbitMQ / Celery / Service Bus)
 - [ ] Subida real de archivos (Blob Storage / multipart)
 - [ ] API Gateway (Ocelot, Kong)
 - [ ] Docker y docker-compose

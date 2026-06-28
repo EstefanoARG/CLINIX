@@ -4,12 +4,11 @@ from datetime import datetime, date, time, timedelta
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.audit import registrar_auditoria
-from app.core.email_sender import send_appointment_confirmation
 from app.core.exceptions import NotFoundError, ConflictError
-from app.core.events import ReservaCreada, CitaConfirmada, publish
+from app.core.events import ReservaCreada, CitaConfirmada, ReservaRechazada, publish
 from app.core.cache import cache
 from app.models import (
-    ReservaWeb, Cita, HorarioMedico, Medico, Paciente,
+    ReservaWeb, Cita, HorarioMedico, Medico, Paciente, Especialidad,
 )
 from app.modules.citas.schemas import (
     ReservaWebCreate, ReservaWebUpdate,
@@ -153,10 +152,13 @@ class ReservaService:
         except Exception:
             pass
         try:
+            esp = self.db.query(Especialidad).filter(Especialidad.EspecialidadID == saved.especialidad_id).first()
+            especialidad_nombre = esp.NombreEspecialidad if esp else ""
             publish(ReservaCreada(saved.reserva_id, {
                 "nombre": saved.nombre_solicitante,
                 "email": saved.email_solicitante,
                 "especialidad_id": saved.especialidad_id,
+                "especialidad_nombre": especialidad_nombre,
                 "fecha": str(saved.fecha_hora_deseada),
             }))
         except Exception:
@@ -197,14 +199,27 @@ class ReservaService:
                             "RESERVA_WEB", reserva_id)
 
     def rechazar(self, reserva_id: int, motivo_rechazo: str) -> dict:
+        result = None
         try:
-            return self.update(reserva_id, ReservaWebUpdate(
+            result = self.update(reserva_id, ReservaWebUpdate(
                 estado="Rechazada",
                 observacion_admin=motivo_rechazo,
             ))
         except Exception:
             self.db.rollback()
             raise
+        try:
+            orm = self._get_reserva_orm(reserva_id)
+            especialidad_nombre = orm.especialidad.NombreEspecialidad if orm.especialidad else ""
+            publish(ReservaRechazada(reserva_id, {
+                "nombre": orm.NombreSolicitante,
+                "email": orm.EmailSolicitante,
+                "motivo": motivo_rechazo,
+                "especialidad_nombre": especialidad_nombre,
+            }))
+        except Exception:
+            pass
+        return result
 
     def convert_to_cita(self, reserva_id: int, ubicacion_id: int | None = None,
                         observaciones: str | None = None, clinical_id: int = 1) -> dict:
@@ -262,21 +277,20 @@ class ReservaService:
                             f"Reserva {reserva_id} convertida a cita {cita.CitaID}",
                             "RESERVA_WEB", reserva_id)
 
+        paciente_nombre = reserva.NombreSolicitante
+        medico_nombre = reserva.medico.usuario.Nombre + " " + reserva.medico.usuario.Apellido if reserva.medico and reserva.medico.usuario else "Asignado"
+        especialidad_nombre = reserva.especialidad.NombreEspecialidad if reserva.especialidad else ""
+
         publish(CitaConfirmada(cita.CitaID, {
             "reserva_id": reserva_id,
             "paciente_id": reserva.PacienteID,
             "medico_id": reserva.MedicoID,
-            "fecha": str(reserva.FechaHoraDeseada),
+            "email": reserva.EmailSolicitante,
+            "paciente_nombre": paciente_nombre,
+            "medico_nombre": medico_nombre,
+            "especialidad_nombre": especialidad_nombre,
+            "fecha": reserva.FechaHoraDeseada.strftime("%d/%m/%Y %H:%M"),
         }))
-
-        if reserva.EmailSolicitante:
-            paciente_nombre = reserva.NombreSolicitante
-            medico_nombre = reserva.medico.usuario.Nombre + " " + reserva.medico.usuario.Apellido if reserva.medico and reserva.medico.usuario else "Asignado"
-            especialidad = reserva.especialidad.NombreEspecialidad if reserva.especialidad else ""
-            send_appointment_confirmation(
-                reserva.EmailSolicitante, paciente_nombre, medico_nombre,
-                reserva.FechaHoraDeseada.strftime("%d/%m/%Y %H:%M"), especialidad,
-            )
         return _cita_to_dict(cita)
 
 

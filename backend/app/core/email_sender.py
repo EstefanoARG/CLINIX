@@ -73,6 +73,56 @@ def send_admission_notification(to: str, paciente_nombre: str, medico_nombre: st
     return send_email(to, subject, body)
 
 
+def send_reserva_received(to: str, paciente_nombre: str, especialidad: str, fecha: str) -> bool:
+    subject = "CLINIX - Solicitud de Cita Recibida"
+    body = f"""
+    <h2>CLINIX - Solicitud Recibida</h2>
+    <p>Hola <strong>{paciente_nombre}</strong>,</p>
+    <p>Hemos recibido tu solicitud de cita médica correctamente.</p>
+    <ul>
+        <li><strong>Especialidad:</strong> {especialidad}</li>
+        <li><strong>Fecha y hora solicitada:</strong> {fecha}</li>
+    </ul>
+    <p>Un administrativo revisará tu solicitud y te notificaremos cuando sea confirmada o si requiere algún ajuste.</p>
+    <p>Gracias por confiar en CLINIX.</p>
+    <p>Saludos,<br>Equipo CLINIX</p>
+    """
+    return send_email(to, subject, body)
+
+
+def send_reserva_rejected(to: str, paciente_nombre: str, motivo: str, especialidad: str) -> bool:
+    subject = "CLINIX - Solicitud de Cita Rechazada"
+    body = f"""
+    <h2>CLINIX - Solicitud Rechazada</h2>
+    <p>Hola <strong>{paciente_nombre}</strong>,</p>
+    <p>Lamentamos informarte que tu solicitud de cita para <strong>{especialidad}</strong> ha sido rechazada.</p>
+    <p><strong>Motivo:</strong> {motivo}</p>
+    <p>Puedes intentar solicitar una nueva cita con otro horario o especialidad desde nuestro portal.</p>
+    <p>Saludos,<br>Equipo CLINIX</p>
+    """
+    return send_email(to, subject, body)
+
+
+def send_cita_reminder(to: str, paciente_nombre: str, medico_nombre: str, fecha: str, especialidad: str, ubicacion: str = "") -> bool:
+    subject = "CLINIX - Recordatorio de Cita Médica"
+    ubicacion_html = f"<li><strong>Ubicación:</strong> {ubicacion}</li>" if ubicacion else ""
+    body = f"""
+    <h2>CLINIX - Recordatorio de Cita</h2>
+    <p>Hola <strong>{paciente_nombre}</strong>,</p>
+    <p>Te recordamos que tienes una cita médica mañana:</p>
+    <ul>
+        <li><strong>Médico:</strong> {medico_nombre}</li>
+        <li><strong>Especialidad:</strong> {especialidad}</li>
+        <li><strong>Fecha y hora:</strong> {fecha}</li>
+        {ubicacion_html}
+    </ul>
+    <p>Por favor, llega 15 minutos antes de tu cita.</p>
+    <p>Si no puedes asistir, por favor cancela con anticipación.</p>
+    <p>Saludos,<br>Equipo CLINIX</p>
+    """
+    return send_email(to, subject, body)
+
+
 def send_password_reset(to: str, token: str, paciente: bool = False) -> bool:
     prefix = "paciente" if paciente else "admin"
     reset_link = f"{settings.FRONTEND_URL}/reset-password?token={token}&type={prefix}"
