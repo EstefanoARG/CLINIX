@@ -76,19 +76,19 @@ class DashboardService:
 
         total_doctores = (
             self.db.query(func.count(Medico.MedicoID))
-            .filter(Medico.Activo.is_(True))
+            .filter(Medico.Activo == True)
             .scalar()
             or 0
         )
         total_enfermeros = (
             self.db.query(func.count(Enfermero.EnfermeroID))
-            .filter(Enfermero.Activo.is_(True))
+            .filter(Enfermero.Activo == True)
             .scalar()
             or 0
         )
         total_pacientes = (
             self.db.query(func.count(Paciente.PacienteID))
-            .filter(Paciente.Activo.is_(True))
+            .filter(Paciente.Activo == True)
             .scalar()
             or 0
         )
@@ -134,7 +134,7 @@ class DashboardService:
             .filter(
                 Paciente.FechaRegistro >= inicio,
                 Paciente.FechaRegistro < fin,
-                Paciente.Activo.is_(True),
+                Paciente.Activo == True,
             )
             .scalar()
             or 0
@@ -397,7 +397,7 @@ class DashboardService:
                 joinedload(Medico.citas),
             )
             .join(Usuario)
-            .filter(Medico.Activo.is_(True), Usuario.Activo.is_(True))
+            .filter(Medico.Activo == True, Usuario.Activo == True)
             .all()
         )
 
@@ -444,7 +444,7 @@ class DashboardService:
             .filter(
                 Paciente.FechaRegistro >= inicio,
                 Paciente.FechaRegistro < fin,
-                Paciente.Activo.is_(True),
+                Paciente.Activo == True,
             )
             .order_by(Paciente.FechaRegistro.desc())
             .limit(20)

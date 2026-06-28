@@ -21,7 +21,7 @@ export default function LandingPage() {
           <Button variant="contained" size="large" onClick={() => navigate('/solicitar-cita')}>
             Solicitar Cita
           </Button>
-          <Button variant="outlined" size="large" onClick={() => navigate('/login')}>
+          <Button variant="outlined" size="large" onClick={() => window.location.href = 'http://localhost:5175/login'}>
             Ingresar
           </Button>
         </Box>

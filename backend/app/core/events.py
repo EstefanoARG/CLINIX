@@ -7,6 +7,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable
 
+from app.core.email_sender import (
+    send_reserva_received,
+    send_appointment_confirmation,
+    send_reserva_rejected,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,6 +43,16 @@ class CitaConfirmada(DomainEvent):
         super().__init__(
             event_type="cita.confirmada",
             aggregate_id=cita_id,
+            data=datos,
+        )
+
+
+@dataclass
+class ReservaRechazada(DomainEvent):
+    def __init__(self, reserva_id: int, datos: dict):
+        super().__init__(
+            event_type="reserva.rechazada",
+            aggregate_id=reserva_id,
             data=datos,
         )
 
@@ -116,16 +132,52 @@ def _run_with_retry(handler: Callable, event: DomainEvent, max_retries: int = 3,
 def subscribe_all():
     subscribe("reserva.creada", _on_reserva_creada)
     subscribe("cita.confirmada", _on_cita_confirmada)
+    subscribe("reserva.rechazada", _on_reserva_rechazada)
     subscribe("admision.creada", _on_admision_creada)
     subscribe("admision.alta", _on_alta_medica)
 
 
 def _on_reserva_creada(event: DomainEvent):
-    logger.info(f"[EventBus] Reserva creada: {event.aggregate_id}")
+    logger.info(f"[EventBus] Enviando confirmación de recepción para reserva {event.aggregate_id}")
+    data = event.data
+    email = data.get("email")
+    nombre = data.get("nombre", "Paciente")
+    especialidad = data.get("especialidad_nombre", "")
+    fecha = data.get("fecha", "")
+    if email:
+        try:
+            send_reserva_received(email, nombre, especialidad, fecha)
+        except Exception as e:
+            logger.error(f"Error sending reservation received email: {e}")
 
 
 def _on_cita_confirmada(event: DomainEvent):
-    logger.info(f"[EventBus] Cita confirmada: {event.aggregate_id}")
+    logger.info(f"[EventBus] Enviando confirmación de cita {event.aggregate_id}")
+    data = event.data
+    email = data.get("email")
+    paciente_nombre = data.get("paciente_nombre", "Paciente")
+    medico_nombre = data.get("medico_nombre", "Asignado")
+    especialidad = data.get("especialidad_nombre", "")
+    fecha = data.get("fecha", "")
+    if email:
+        try:
+            send_appointment_confirmation(email, paciente_nombre, medico_nombre, fecha, especialidad)
+        except Exception as e:
+            logger.error(f"Error sending appointment confirmation email: {e}")
+
+
+def _on_reserva_rechazada(event: DomainEvent):
+    logger.info(f"[EventBus] Enviando notificación de rechazo para reserva {event.aggregate_id}")
+    data = event.data
+    email = data.get("email")
+    nombre = data.get("nombre", "Paciente")
+    motivo = data.get("motivo", "No se especificó un motivo")
+    especialidad = data.get("especialidad_nombre", "")
+    if email:
+        try:
+            send_reserva_rejected(email, nombre, motivo, especialidad)
+        except Exception as e:
+            logger.error(f"Error sending rejection email: {e}")
 
 
 def _on_admision_creada(event: DomainEvent):

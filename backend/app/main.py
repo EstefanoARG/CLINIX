@@ -9,6 +9,7 @@ from app.core.database import engine, Base, SessionLocal
 from app.core.dependencies import require_role
 from app.core.exceptions import CredentialsError, ForbiddenError, NotFoundError, ConflictError
 from app.core.events import subscribe_all
+from app.core.scheduler import iniciar_scheduler, detener_scheduler
 from app.core.config import settings
 from app.core.seed import initialize_seed_data, should_rebuild_sqlite_demo
 from app.modules.auth.router import router as auth_router
@@ -43,7 +44,9 @@ async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
     init_seed_data()
     subscribe_all()
+    iniciar_scheduler()
     yield
+    detener_scheduler()
 
 
 app = FastAPI(
@@ -54,7 +57,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5175", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
