@@ -13,6 +13,7 @@ import { isAxiosError } from 'axios';
 import api from '../../services/api';
 import type { Especialidad, Medico, DisponibilidadResponse } from '../../types';
 import ClinixLogo from '../../components/ClinixLogo';
+import PublicFooter from '../../components/layout/PublicFooter';
 
 interface FormState {
   nombres: string;
@@ -237,6 +238,9 @@ export default function SolicitudCita() {
             </Box>
           </Box>
         </Box>
+        <Box sx={{ position: 'fixed', bottom: 32, left: 0, right: 0, zIndex: 2 }}>
+          <PublicFooter />
+        </Box>
       </>
     );
   }
@@ -258,7 +262,7 @@ export default function SolicitudCita() {
         zIndex: 0,
       }} />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box sx={{ maxWidth: 960, mx: 'auto', px: 2, py: 4, position: 'relative', zIndex: 1 }}>
+        <Box sx={{ maxWidth: 960, mx: 'auto', px: 2, py: 4, pb: 12, position: 'relative', zIndex: 1 }}>
 
         <Button
           onClick={() => navigate('/')}
@@ -542,6 +546,9 @@ export default function SolicitudCita() {
         </Box>
         </Box>
     </LocalizationProvider>
+        <Box sx={{ position: 'fixed', bottom: 32, left: 0, right: 0, zIndex: 2 }}>
+          <PublicFooter />
+        </Box>
     </>
   );
 }
