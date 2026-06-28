@@ -4,6 +4,7 @@ import {
   Box, Card, CardContent, TextField, Button, Typography, Link, Alert,
 } from '@mui/material';
 import { useAuth } from '../../store/AuthContext';
+import PublicFooter from '../../components/layout/PublicFooter';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -27,7 +28,7 @@ export default function LoginPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', position: 'relative' }}>
       <Card sx={{ width: 400, p: 2 }}>
         <CardContent>
           <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }} gutterBottom>
@@ -66,6 +67,9 @@ export default function LoginPage() {
           </Box>
         </CardContent>
       </Card>
+      <Box sx={{ position: 'absolute', bottom: 32, left: 0, right: 0, zIndex: 1 }}>
+        <PublicFooter />
+      </Box>
     </Box>
   );
 }
