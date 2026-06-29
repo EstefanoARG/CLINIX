@@ -1,13 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Box, Divider,
+  Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Box,
 } from '@mui/material';
-import PatientsIcon from '@mui/icons-material/Accessible';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import ClinixLogo from '../ClinixLogo';
+import { CalendarDays, Users, Stethoscope } from 'lucide-react';
 
 const DRAWER_WIDTH = 260;
-const ACTIVE_BG = '#303F9F';
 
 interface MenuItem {
   label: string;
@@ -16,8 +13,8 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { label: 'Agenda Médica', path: '/panel/doctor', icon: <MedicalServicesIcon /> },
-  { label: 'Mis Pacientes', path: '/panel/doctor/pacientes', icon: <PatientsIcon /> },
+  { label: 'Agenda Médica', path: '/panel/doctor', icon: <CalendarDays size={20} /> },
+  { label: 'Mis Pacientes', path: '/panel/doctor/pacientes', icon: <Users size={20} /> },
 ];
 
 interface DoctorSidebarProps {
@@ -34,14 +31,30 @@ export default function DoctorSidebar(_props: DoctorSidebarProps) {
       sx={{
         width: DRAWER_WIDTH,
         flexShrink: 0,
-        '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', borderRight: '1px solid #E0E0E0' },
+        '& .MuiDrawer-paper': {
+          width: DRAWER_WIDTH,
+          boxSizing: 'border-box',
+          bgcolor: '#FFFFFF',
+          borderRight: '1px solid #E5E7EB',
+        },
       }}
     >
-      <Toolbar sx={{ px: 2 }}>
-        <ClinixLogo size={32} />
+      <Toolbar sx={{ px: 2.5, gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            color: '#0F4C81',
+          }}
+        >
+          <Stethoscope size={26} strokeWidth={2} />
+          <Box sx={{ fontSize: 20, fontWeight: 700, letterSpacing: 1, lineHeight: 1 }}>
+            CLINIX
+          </Box>
+        </Box>
       </Toolbar>
-      <Divider />
-      <Box sx={{ overflow: 'auto', py: 1 }}>
+      <Box sx={{ overflow: 'auto', py: 1.5 }}>
         <List>
           {menuItems.map((item) => {
             const isActive = item.path === '/panel/doctor'
@@ -52,20 +65,41 @@ export default function DoctorSidebar(_props: DoctorSidebarProps) {
                 key={item.path}
                 selected={isActive}
                 onClick={() => navigate(item.path)}
-                sx={[
-                  { borderRadius: 2, mx: 1, my: 0.3 },
-                  isActive && {
-                    bgcolor: `${ACTIVE_BG} !important`,
-                    color: '#FFFFFF !important',
-                    '&:hover': { bgcolor: '#3949AB !important' },
-                    '& .MuiListItemIcon-root': { color: '#FFFFFF !important' },
-                    '& .MuiListItemText-primary': { fontWeight: 600, color: '#FFFFFF !important' },
-                    '&.Mui-selected': { bgcolor: `${ACTIVE_BG} !important` },
-                  },
-                ]}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1.5,
+                  my: 0.3,
+                  px: 2,
+                  ...(isActive
+                    ? {
+                        bgcolor: '#DBEAFE',
+                        color: '#2563EB',
+                        borderLeft: '3px solid #2563EB',
+                        pl: 1.5,
+                        '&:hover': { bgcolor: '#DBEAFE' },
+                        '& .MuiListItemText-primary': { fontWeight: 600 },
+                        '&.Mui-selected': { bgcolor: '#DBEAFE' },
+                      }
+                    : {
+                        color: '#475569',
+                        '&:hover': { bgcolor: '#F8FAFC' },
+                      }),
+                }}
               >
-                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} />
+                <ListItemIcon
+                  sx={{
+                    minWidth: 36,
+                    color: isActive ? '#2563EB' : '#94A3B8',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{
+                    primary: { sx: { fontSize: 14, fontWeight: isActive ? 600 : 500 } },
+                  }}
+                />
               </ListItemButton>
             );
           })}

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Button, Paper, Table, TableBody, TableCell,
-  TableHead, TableRow, Typography,
+  TableHead, TableRow, Typography, alpha,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { ArrowLeft, ClipboardList } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
 import type { HistoriaClinica } from '../../types';
 
@@ -30,42 +31,75 @@ export default function DoctorHistorialPage() {
   }, [pacienteId]);
 
   return (
-    <Box>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', p: { xs: 2, md: 4 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/panel/doctor/pacientes')}>Volver</Button>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Historial — {paciente?.nombre} {paciente?.apellido}
-        </Typography>
+        <Button
+          startIcon={<ArrowLeft size={20} />}
+          onClick={() => navigate('/panel/doctor/pacientes')}
+          sx={{ color: '#2563EB', textTransform: 'none', fontWeight: 500, '&:hover': { bgcolor: alpha('#2563EB', 0.08) } }}
+        >
+          Volver
+        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <ClipboardList size={28} color="#2563EB" />
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#0F4C81' }}>
+            Historial — {paciente?.nombre} {paciente?.apellido}
+          </Typography>
+        </Box>
       </Box>
+
       {paciente && (
-        <Typography color="text.secondary" sx={{ mb: 2 }}>DNI: {paciente.dni}</Typography>
+        <Paper sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 2, py: 1, mb: 3, borderRadius: 2, bgcolor: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB' }}>
+          <Typography variant="body2" sx={{ color: '#6B7280', fontWeight: 500 }}>DNI:</Typography>
+          <Typography variant="body2" sx={{ color: '#111827', fontWeight: 600 }}>{paciente.dni}</Typography>
+        </Paper>
       )}
-      <Paper>
+
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden', bgcolor: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB' }}>
         {historias.length === 0 ? (
-          <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="h6">Sin historias clínicas</Typography>
-            <Typography variant="body2">Este paciente aún no tiene historias registradas. Las historias se crean desde la Agenda Médica al atender una cita.</Typography>
-          </Box>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Box sx={{ py: 8, textAlign: 'center', color: 'text.secondary' }}>
+              <ClipboardList size={64} strokeWidth={1} color="#D1D5DB" style={{ marginBottom: 16 }} />
+              <Typography variant="h6" sx={{ fontWeight: 500, color: '#6B7280' }}>Sin historias clínicas</Typography>
+              <Typography variant="body2" color="#9CA3AF">Este paciente aún no tiene historias registradas. Las historias se crean desde la Agenda Médica al atender una cita.</Typography>
+            </Box>
+          </motion.div>
         ) : (
           <Table size="small">
             <TableHead>
-              <TableRow>
-                <TableCell>Fecha</TableCell>
-                <TableCell>Anamnesis</TableCell>
-                <TableCell>Diagnóstico</TableCell>
-                <TableCell>Tratamiento</TableCell>
-                <TableCell>Prescripción</TableCell>
+              <TableRow sx={{ bgcolor: '#DBEAFE' }}>
+                <TableCell sx={{ color: '#1E40AF', fontWeight: 600, py: 1.5 }}>Fecha</TableCell>
+                <TableCell sx={{ color: '#1E40AF', fontWeight: 600, py: 1.5 }}>Anamnesis</TableCell>
+                <TableCell sx={{ color: '#1E40AF', fontWeight: 600, py: 1.5 }}>Diagnóstico</TableCell>
+                <TableCell sx={{ color: '#1E40AF', fontWeight: 600, py: 1.5 }}>Tratamiento</TableCell>
+                <TableCell sx={{ color: '#1E40AF', fontWeight: 600, py: 1.5 }}>Prescripción</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {historias.map((h) => (
-                <TableRow key={h.historial_id}>
-                  <TableCell>{new Date(h.fecha_registro).toLocaleString()}</TableCell>
-                  <TableCell>{h.anamnesis ?? '-'}</TableCell>
-                  <TableCell>{h.diagnostico}</TableCell>
-                  <TableCell>{h.tratamiento}</TableCell>
-                  <TableCell>{h.prescripcion ?? '-'}</TableCell>
-                </TableRow>
+              {historias.map((h, index) => (
+                <motion.div
+                  key={h.historial_id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <TableRow
+                    hover
+                    sx={{ '&:hover': { bgcolor: '#EEF2FF' }, '&:last-child td': { border: 0 } }}
+                  >
+                    <TableCell sx={{ color: '#374151', fontWeight: 500 }}>
+                      {new Date(h.fecha_registro).toLocaleString()}
+                    </TableCell>
+                    <TableCell sx={{ color: '#6B7280' }}>{h.anamnesis ?? '-'}</TableCell>
+                    <TableCell sx={{ color: '#111827', fontWeight: 500 }}>{h.diagnostico}</TableCell>
+                    <TableCell sx={{ color: '#6B7280' }}>{h.tratamiento}</TableCell>
+                    <TableCell sx={{ color: '#6B7280' }}>{h.prescripcion ?? '-'}</TableCell>
+                  </TableRow>
+                </motion.div>
               ))}
             </TableBody>
           </Table>

@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Divider, keyframes, Fade } from '@mui/material';
+import { Box, Typography, Button, keyframes, Fade } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import ClinixLogo from '../../components/ClinixLogo';
+import PublicFooter from '../../components/layout/PublicFooter';
 
 const blob1 = keyframes`
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -15,8 +15,6 @@ const blob2 = keyframes`
   33% { transform: translate(-25px, 25px) scale(1.06); }
   66% { transform: translate(20px, -20px) scale(0.94); }
 `;
-
-const ADMIN_URL = import.meta.env.VITE_PUBLIC_ADMIN_URL;
 
 export default function Inicio() {
   const navigate = useNavigate();
@@ -128,30 +126,11 @@ export default function Inicio() {
             SOLICITUD CITA
           </Button>
 
-          <Divider sx={{
-            width: '100%',
-            my: 1,
-            borderColor: 'rgba(0, 0, 0, 0.06)',
-          }} />
-
-          <Button
-            startIcon={<AdminPanelSettingsOutlinedIcon sx={{ fontSize: 14 }} />}
-            onClick={() => { window.location.href = `${ADMIN_URL}/login`; }}
-            sx={{
-              color: '#78909C',
-              fontWeight: 500,
-              letterSpacing: 1,
-              fontSize: '0.75rem',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                color: '#1565C0',
-                background: 'rgba(21, 101, 192, 0.06)',
-              },
-            }}>
-            ACCESO ADMINISTRADOR
-          </Button>
         </Box>
       </Fade>
+      <Box sx={{ position: 'absolute', bottom: 32, left: 0, right: 0, zIndex: 1 }}>
+        <PublicFooter />
+      </Box>
     </Box>
   );
 }
