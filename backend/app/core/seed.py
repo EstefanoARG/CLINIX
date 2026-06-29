@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import re
 
 from sqlalchemy import text
@@ -9,6 +10,12 @@ from app.models import (
     CIE10Diagnostico,
     Clinica,
     Especialidad,
+    LandingComparisonRow,
+    LandingFAQ,
+    LandingMetric,
+    LandingPlan,
+    LandingPlanFeature,
+    LandingTestimonial,
     PacienteAuth,
     Role,
     Usuario,
@@ -104,6 +111,153 @@ def _ensure_minimum_data(db: Session) -> None:
             Telefono="+51 999 999 999",
             PasswordHash=hash_password("admin123"),
         ))
+
+    db.commit()
+
+
+def _seed_landing_data(db: Session) -> None:
+    if db.query(LandingPlan).count() == 0:
+        plans = [
+            {
+                "Slug": "starter",
+                "Nombre": "Starter",
+                "Descripcion": "Digitalizate y gana visibilidad con reservas en linea y recordatorios de visitas.",
+                "Precio": 199.17,
+                "PrecioConWeb": 254.17,
+                "Periodo": "Al mes, con cargo anual",
+                "ColorAcento": "#D85F99",
+                "Icono": "star",
+                "IntroBeneficios": "Todo lo del perfil gratuito y:",
+                "Orden": 1,
+                "features": [
+                    ("Calendario para consulta en linea", "Permite que tus pacientes reserven consultas en linea."),
+                    ("Recordatorios por correo y notificaciones", "Reduce ausencias con recordatorios automaticos."),
+                    ("Campanas de SMS", "Mantente en contacto con tus pacientes."),
+                ],
+            },
+            {
+                "Slug": "plus",
+                "Nombre": "Plus",
+                "Descripcion": "Ofrece una excelente experiencia a tus pacientes y haz mas eficiente tu practica.",
+                "Precio": 249.17,
+                "PrecioConWeb": 304.17,
+                "Periodo": "Al mes, con cargo anual",
+                "ColorAcento": "#1662C6",
+                "Icono": "zap",
+                "IntroBeneficios": "Todos los beneficios del plan Starter y:",
+                "Popular": True,
+                "EtiquetaPopular": "Mas Popular",
+                "Orden": 2,
+                "features": [
+                    ("Episodios clinicos", "Recopila toda la informacion de tus pacientes."),
+                    ("Recordatorios mediante SMS", "Reduce ausencias con recordatorios via SMS."),
+                    ("Consulta en linea", "Videoconsulta segura con tus pacientes."),
+                ],
+            },
+            {
+                "Slug": "vip",
+                "Nombre": "VIP",
+                "Descripcion": "Impulsa tu exito con las mejores herramientas para ti y tus pacientes.",
+                "Precio": 299.17,
+                "PrecioConWeb": 354.17,
+                "Periodo": "Al mes, con cargo anual",
+                "ColorAcento": "#F9A83E",
+                "Icono": "crown",
+                "IntroBeneficios": "Todos los beneficios del plan Plus y:",
+                "Orden": 3,
+                "features": [
+                    ("Diseno de tu perfil", "Perfil publico optimizado para destacar."),
+                    ("Lista de espera", "Notifica a tus pacientes si se libera un espacio."),
+                    ("Envios masivos", "Cancela citas y envia mensajes masivos."),
+                ],
+            },
+        ]
+        for plan_data in plans:
+            features = plan_data.pop("features")
+            plan = LandingPlan(**plan_data)
+            db.add(plan)
+            db.flush()
+            for index, (text_value, tooltip) in enumerate(features, start=1):
+                db.add(LandingPlanFeature(
+                    PlanID=plan.PlanID,
+                    Texto=text_value,
+                    Tooltip=tooltip,
+                    Orden=index,
+                ))
+
+    if db.query(LandingMetric).count() == 0:
+        db.add_all([
+            LandingMetric(Slug="clinicas", Icono="building", Etiqueta="Clinicas", Valor=0, Sufijo="+", Fuente="clinicas_count", Orden=1),
+            LandingMetric(Slug="pacientes", Icono="users", Etiqueta="Pacientes", Valor=0, Sufijo="+", Fuente="pacientes_count", Orden=2),
+            LandingMetric(Slug="disponibilidad", Icono="shield", Etiqueta="Disponibilidad", Valor=99.9, Sufijo="%", Fuente="manual", Orden=3),
+            LandingMetric(Slug="soporte", Icono="headphones", Etiqueta="", Valor=24, Sufijo="/7 Soporte", Fuente="manual", Orden=4),
+        ])
+
+    if db.query(LandingTestimonial).count() == 0:
+        db.add_all([
+            LandingTestimonial(
+                Nombre="Dr. Ricardo Munoz Leon",
+                Especialidad="Pediatra",
+                Ubicacion="Lima",
+                AvatarURL="https://pro.clinix.pe/hubfs/2021%20DOC%20FAC%20merge%20project/Peru/Customers/Headshots/pe-headshot-ricardo-munoz-leon.png",
+                Texto="Luego de utilizar CLINIX he visto un gran crecimiento en mi lista de pacientes y una mejor comunicacion con ellos.",
+                Orden=1,
+            ),
+            LandingTestimonial(
+                Nombre="Dr. Ruslan Golovliov",
+                Especialidad="Gastroenterologo",
+                Ubicacion="Lima",
+                AvatarURL="https://pro.clinix.pe/hubfs/2021%20DOC%20FAC%20merge%20project/Peru/Customers/Headshots/pe-headshot-ruslan-golovliov.png",
+                Texto="CLINIX me ha ayudado a retener mis pacientes. Ellos recurren a mi cada vez mas para agendar una consulta en linea.",
+                Orden=2,
+            ),
+            LandingTestimonial(
+                Nombre="Dr. Juan Manuel Menendez",
+                Especialidad="Cardiologo",
+                Ubicacion="Lima",
+                AvatarURL="https://pro.clinix.pe/hubfs/2021%20DOC%20FAC%20merge%20project/Peru/Customers/Headshots/pe-headshot-juan-manuel-menendez.png",
+                Texto="Las opiniones me han servido para mejorar mi presencia en Internet y recibir mejores recomendaciones.",
+                Orden=3,
+            ),
+        ])
+
+    if db.query(LandingFAQ).count() == 0:
+        faqs = [
+            ("Los planes tienen compromiso de permanencia?", "La suscripcion a un plan tiene un periodo de permanencia para asegurar implementacion y acompanamiento."),
+            ("Cuales son las modalidades de pago disponibles?", "El pago de la suscripcion es anual. Tambien puedes contratar una pagina web profesional junto con tu plan."),
+            ("Necesito conocimientos de computo?", "No. La agenda y las herramientas estan pensadas para operar sin instalacion ni soporte tecnico permanente."),
+            ("Hay limite de destinatarios para campanas?", "El limite se basa en los correos o SMS disponibles por mes segun el plan contratado."),
+            ("Que posicion ocupare en los listados?", "Los planes pagos permiten mejorar la visibilidad frente a perfiles gratuitos."),
+            ("Como puedo ver mis facturas?", "Las facturas se envian al correo asociado y pueden consultarse desde el modulo de facturacion."),
+        ]
+        for index, (question, answer) in enumerate(faqs, start=1):
+            db.add(LandingFAQ(Pregunta=question, Respuesta=answer, Orden=index))
+
+    if db.query(LandingComparisonRow).count() == 0:
+        rows = [
+            ("Comunicacion con pacientes", "", "", ["", "", ""]),
+            ("", "Recordatorios de visitas", "Reduce las ausencias con recordatorios automaticos.", ["Via e-mail y notificaciones", "Via e-mail, SMS y notificaciones", "Via e-mail, app, SMS y envios masivos"]),
+            ("", "Campanas de SMS", "Manten el contacto con tus pacientes.", ["300 SMS al mes", "1000 SMS al mes", "5000 SMS al mes"]),
+            ("", "Mensajes", "Canal seguro para comunicarte con tus pacientes.", ["check", "check", "check"]),
+            ("Gestion del consultorio", "", "", ["", "", ""]),
+            ("", "Reserva online de cita", "Permite que los pacientes programen su cita.", ["check", "check", "check"]),
+            ("", "Episodios clinicos", "Recopila informacion de pacientes.", ["-", "check", "check"]),
+            ("", "Lista de espera", "Completa turnos cancelados.", ["-", "check", "check"]),
+            ("", "Consulta en linea", "Videoconsulta segura.", ["Solo calendario digital", "Calendario y videoconsulta", "Calendario y videoconsulta"]),
+            ("", "Informes en tiempo real", "Accede al rendimiento de tu consulta.", ["check", "check", "check"]),
+            ("Visibilidad", "", "", ["", "", ""]),
+            ("", "Visibilidad en listados", "Mejora tu posicion en CLINIX.", ["check", "check", "check"]),
+            ("", "Opiniones", "Construye confianza con opiniones.", ["check", "check", "check"]),
+            ("", "Diseno de perfil", "Perfil publico optimizado.", ["Basico", "Basico", "Mejorado"]),
+        ]
+        for index, (category, feature, tooltip, values) in enumerate(rows, start=1):
+            db.add(LandingComparisonRow(
+                Categoria=category or None,
+                Caracteristica=feature or None,
+                Tooltip=tooltip or None,
+                ValoresJSON=json.dumps(values),
+                Orden=index,
+            ))
 
     db.commit()
 
@@ -380,3 +534,4 @@ def initialize_seed_data(db: Session, dialect_name: str, demo_seed: bool = True)
     _make_demo_passwords_functional(db)
     _ensure_minimum_data(db)
     _seed_cie10_codes(db)
+    _seed_landing_data(db)
