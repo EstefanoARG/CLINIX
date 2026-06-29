@@ -5,7 +5,7 @@ import Footer from '../sections/Footer';
 
 export default function LandingLayout() {
   return (
-    <Box>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh' }}>
       <Navbar />
       <Box component="main">
         <Outlet />

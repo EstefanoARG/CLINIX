@@ -1,11 +1,12 @@
 import { Box } from '@mui/material';
 import PricingHero from '../components/sections/PricingHero';
 import PricingCards from '../components/sections/PricingCards';
-import SupportSection from '../components/sections/SupportSection';
+import Stats from '../components/sections/Stats';
 import ComparisonTable from '../components/sections/ComparisonTable';
-import ExistingCustomer from '../components/sections/ExistingCustomer';
-import FAQ from '../components/sections/FAQ';
 import Testimonials from '../components/sections/Testimonials';
+import SupportSection from '../components/sections/SupportSection';
+import FAQ from '../components/sections/FAQ';
+import ExistingCustomer from '../components/sections/ExistingCustomer';
 import ContactForm from '../components/sections/ContactForm';
 
 export default function HomePage() {
@@ -13,11 +14,12 @@ export default function HomePage() {
     <Box>
       <PricingHero />
       <PricingCards />
-      <SupportSection />
+      <Stats />
       <ComparisonTable />
-      <ExistingCustomer />
       <Testimonials />
+      <SupportSection />
       <FAQ />
+      <ExistingCustomer />
       <ContactForm />
     </Box>
   );

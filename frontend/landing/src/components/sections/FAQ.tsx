@@ -1,14 +1,7 @@
-import { useState } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Box, Container, Typography } from '@mui/material';
+import { motion } from 'framer-motion';
+import * as Accordion from '@radix-ui/react-accordion';
+import { ChevronDown } from 'lucide-react';
 
 const faqData = [
   {
@@ -37,79 +30,130 @@ const faqData = [
   },
 ];
 
+import type { Variants } from 'framer-motion';
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.4, ease: 'easeOut' },
+  }),
+};
+
 export default function FAQ() {
-  const [expanded, setExpanded] = useState<string | false>(false);
-
-  const handleChange = (panel: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
-
-  const leftItems = faqData.slice(0, 3);
-  const rightItems = faqData.slice(3, 6);
-
   return (
-    <Box sx={{ py: { xs: 6, md: 10 } }}>
-      <Container maxWidth="lg">
-        <Typography
-          variant="h4"
-          sx={{ textAlign: 'center', color: '#012c6d', fontWeight: 700, mb: 4 }}
+    <Box sx={{ bgcolor: '#F8FAFC', py: { xs: 8, md: 12 } }}>
+      <Container maxWidth="md">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
         >
-          Preguntas frecuentes
-        </Typography>
+          <Typography
+            variant="h3"
+            align="center"
+            sx={{ fontWeight: 800, color: '#0F4C81', mb: 1, fontSize: { xs: '1.75rem', md: '2.25rem' } }}
+          >
+            Preguntas frecuentes
+          </Typography>
+          <Typography
+            variant="body1"
+            align="center"
+            sx={{ color: '#64748b', mb: 6, maxWidth: 600, mx: 'auto' }}
+          >
+            Resolvemos tus dudas sobre nuestros planes y servicios
+          </Typography>
+        </motion.div>
 
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {leftItems.map((item, idx) => (
-              <Accordion
-                key={`left-${idx}`}
-                expanded={expanded === `panel-left-${idx}`}
-                onChange={handleChange(`panel-left-${idx}`)}
+        <Accordion.Root type="single" collapsible>
+          {faqData.map((item, idx) => (
+            <motion.div
+              key={idx}
+              custom={idx}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              variants={itemVariants}
+            >
+              <Box
+                component={Accordion.Item}
+                value={`item-${idx}`}
                 sx={{
-                  boxShadow: 'none',
-                  borderBottom: '1px solid #dcdfe3',
-                  '&:before': { display: 'none' },
+                  borderBottom: '1px solid #e2e8f0',
                 }}
               >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" sx={{ color: '#012c6d', fontWeight: 500 }}>
-                    {item.question}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.answer}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {rightItems.map((item, idx) => (
-              <Accordion
-                key={`right-${idx}`}
-                expanded={expanded === `panel-right-${idx}`}
-                onChange={handleChange(`panel-right-${idx}`)}
-                sx={{
-                  boxShadow: 'none',
-                  borderBottom: '1px solid #dcdfe3',
-                  '&:before': { display: 'none' },
-                }}
-              >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" sx={{ color: '#012c6d', fontWeight: 500 }}>
-                    {item.question}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.answer}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Grid>
-        </Grid>
+                <Accordion.Header>
+                  <Accordion.Trigger
+                    style={{
+                      all: 'unset',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '16px 0',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ color: '#0F4C81', fontWeight: 600, fontSize: '1rem', textAlign: 'left', pr: 2 }}
+                    >
+                      {item.question}
+                    </Typography>
+                    <ChevronDown
+                      size={20}
+                      className="accordion-chevron"
+                      style={{
+                        color: '#2563EB',
+                        flexShrink: 0,
+                        transition: 'transform 0.3s ease',
+                      }}
+                    />
+                  </Accordion.Trigger>
+                </Accordion.Header>
+                <Accordion.Content
+                  className="accordion-content"
+                  style={{
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box sx={{ pb: 3 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: '#475569', lineHeight: 1.7, fontSize: '0.95rem' }}
+                    >
+                      {item.answer}
+                    </Typography>
+                  </Box>
+                </Accordion.Content>
+              </Box>
+            </motion.div>
+          ))}
+        </Accordion.Root>
       </Container>
+
+      <style>{`
+        .accordion-chevron[data-state="open"] {
+          transform: rotate(180deg);
+        }
+        .accordion-content[data-state="open"] {
+          animation: slideDown 0.3s ease-out;
+        }
+        .accordion-content[data-state="closed"] {
+          animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideDown {
+          from { height: 0; opacity: 0; }
+          to { height: var(--radix-accordion-content-height); opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { height: var(--radix-accordion-content-height); opacity: 1; }
+          to { height: 0; opacity: 0; }
+        }
+      `}</style>
     </Box>
   );
 }

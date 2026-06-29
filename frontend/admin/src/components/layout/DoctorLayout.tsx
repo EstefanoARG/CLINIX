@@ -15,12 +15,19 @@ export default function DoctorLayout() {
   if (user.role !== 'Médico') return <Navigate to="/dashboard" replace />;
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
       <DoctorSidebar role={user.role} />
       <Box sx={{ flexGrow: 1, width: `calc(100% - ${DRAWER_WIDTH}px)` }}>
         <AdminHeader />
         <Toolbar sx={{ minHeight: `${APPBAR_HEIGHT}px !important` }} />
-        <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: `calc(100vh - ${APPBAR_HEIGHT}px)` }}>
+        <Box
+          sx={{
+            p: 3,
+            bgcolor: '#F8FAFC',
+            minHeight: `calc(100vh - ${APPBAR_HEIGHT}px)`,
+            boxShadow: 'inset 0 1px 0 #E5E7EB',
+          }}
+        >
           <Outlet />
         </Box>
       </Box>
