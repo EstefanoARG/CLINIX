@@ -1,5 +1,9 @@
-import { Box, Container, Typography, Avatar, Card, CardContent } from '@mui/material';
-import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
+import { Box, Container, Typography, Avatar } from '@mui/material';
+import { motion } from 'framer-motion';
+import { Quote } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Review {
   name: string;
@@ -34,59 +38,114 @@ const reviews: Review[] = [
 ];
 
 export default function Testimonials() {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'center' }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on('select', onSelect);
+    return () => { emblaApi.off('select', onSelect); };
+  }, [emblaApi, onSelect]);
+
   return (
-    <Box sx={{ bgcolor: '#f7f9fa', py: { xs: 4, md: 6 } }}>
-      <Container maxWidth="lg">
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 2,
-            overflowX: 'auto',
-            pb: 2,
-            '&::-webkit-scrollbar': { display: 'none' },
-          }}
+    <Box sx={{ bgcolor: '#ffffff', py: { xs: 8, md: 12 } }}>
+      <Container maxWidth="md">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
         >
-          {reviews.map((review, idx) => (
-            <Card
-              key={idx}
-              sx={{
-                minWidth: { xs: '80vw', sm: 450 },
-                maxWidth: 500,
-                boxShadow: '0 1px 7px rgba(0,0,0,0.15)',
-                borderRadius: 2,
-                flexShrink: 0,
-              }}
-            >
-              <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <Box sx={{ mb: 2 }}>
-                  <FormatQuoteIcon sx={{ color: '#e0e0e0', fontSize: 36 }} />
-                </Box>
-                <Typography
-                  variant="body2"
-                  sx={{ color: '#012c6d', mb: 3, flex: 1, lineHeight: 1.6 }}
+          <Typography
+            variant="h3"
+            align="center"
+            sx={{ fontWeight: 800, color: '#0F4C81', mb: 1, fontSize: { xs: '1.75rem', md: '2.25rem' } }}
+          >
+            Lo que dicen nuestros usuarios
+          </Typography>
+          <Typography
+            variant="body1"
+            align="center"
+            sx={{ color: '#64748b', mb: 6, maxWidth: 600, mx: 'auto' }}
+          >
+            Médicos reales, resultados reales
+          </Typography>
+        </motion.div>
+
+        <Box ref={emblaRef} sx={{ overflow: 'hidden', cursor: 'grab' }}>
+          <Box sx={{ display: 'flex', touchAction: 'pan-y' }}>
+            {reviews.map((review, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  flex: '0 0 100%',
+                  minWidth: 0,
+                  px: { xs: 1, md: 4 },
+                }}
+              >
+                <Box
+                  sx={{
+                    bgcolor: '#ffffff',
+                    borderRadius: '1rem',
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
+                    p: { xs: 3, md: 5 },
+                    border: '1px solid #f1f5f9',
+                    textAlign: 'center',
+                  }}
                 >
-                  {review.text}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Avatar
-                    src={review.avatar}
-                    alt={review.name}
-                    sx={{ width: 50, height: 50 }}
-                  />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ color: '#012c6d', fontWeight: 500 }}>
-                      {review.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {review.specialty}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {review.location}
-                    </Typography>
+                  <Quote size={32} style={{ color: '#DBEAFE', marginBottom: 16 }} />
+
+                  <Typography
+                    variant="body1"
+                    sx={{ color: '#334155', lineHeight: 1.7, mb: 4, fontStyle: 'italic', fontSize: { xs: '0.95rem', md: '1.05rem' } }}
+                  >
+                    "{review.text}"
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                    <Avatar
+                      src={review.avatar}
+                      alt={review.name}
+                      sx={{ width: 52, height: 52, border: '2px solid #DBEAFE' }}
+                    />
+                    <Box sx={{ textAlign: 'left' }}>
+                      <Typography variant="subtitle1" sx={{ color: '#0F4C81', fontWeight: 600, lineHeight: 1.2 }}>
+                        {review.name}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#2563EB', fontWeight: 500 }}>
+                        {review.specialty}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                        {review.location}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
-              </CardContent>
-            </Card>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, mt: 4 }}>
+          {reviews.map((_, idx) => (
+            <Box
+              key={idx}
+              onClick={() => emblaApi?.scrollTo(idx)}
+              sx={{
+                width: selectedIndex === idx ? 28 : 10,
+                height: 10,
+                borderRadius: 5,
+                bgcolor: selectedIndex === idx ? '#2563EB' : '#DBEAFE',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+            />
           ))}
         </Box>
       </Container>

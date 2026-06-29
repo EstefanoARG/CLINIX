@@ -13,8 +13,7 @@ import {
   Switch,
   FormControlLabel,
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { Check, Minus, Info } from 'lucide-react';
 
 interface FeatureRow {
   category?: string;
@@ -92,21 +91,29 @@ export default function ComparisonTable() {
   const [webSwitch, setWebSwitch] = useState(false);
 
   return (
-    <Box sx={{ bgcolor: 'white', py: { xs: 4, md: 8 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', py: { xs: 4, md: 8 } }}>
       <Container maxWidth="lg">
         <Typography
           variant="h4"
-          sx={{ textAlign: 'center', color: '#012c6d', fontWeight: 700, mb: 4 }}
+          sx={{ textAlign: 'center', color: '#0F172A', fontWeight: 800, mb: 6, fontSize: { xs: '1.5rem', md: '2rem' } }}
         >
           Compara las características de nuestros planes
         </Typography>
 
-        <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #dcdfe3', borderRadius: 2 }}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            boxShadow: '0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 4px -1px rgba(0,0,0,0.04)',
+            border: '1px solid #E2E8F0',
+            borderRadius: '16px',
+            overflow: 'hidden',
+          }}
+        >
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: '35%', fontWeight: 700, color: '#012c6d' }}>
-                  <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <TableRow sx={{ bgcolor: '#FFFFFF' }}>
+                <TableCell sx={{ width: '35%', fontWeight: 700, color: '#0F172A', py: 2.5, pl: 3 }}>
+                  <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 700, color: '#0F172A' }}>
                     Comparativa de las características
                   </Typography>
                 </TableCell>
@@ -117,15 +124,16 @@ export default function ComparisonTable() {
                     sx={{
                       borderTop: `4px solid ${accentColors[i]}`,
                       minWidth: 120,
+                      py: 2.5,
                     }}
                   >
-                    <Typography variant="subtitle1" sx={{ color: accentColors[i], fontWeight: 600 }}>
+                    <Typography variant="subtitle1" sx={{ color: accentColors[i], fontWeight: 700, fontSize: '1.05rem' }}>
                       {name}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#012c6d', fontWeight: 500 }}>
+                    <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600, mt: 0.5 }}>
                       {planPrices[i]}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ color: '#64748B' }}>
                       Al mes, con cargo anual
                     </Typography>
                   </TableCell>
@@ -136,9 +144,9 @@ export default function ComparisonTable() {
               {rows.map((row, idx) => {
                 if (row.category) {
                   return (
-                    <TableRow key={`cat-${idx}`} sx={{ bgcolor: '#f7f9fa' }}>
-                      <TableCell colSpan={4}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#012c6d' }}>
+                    <TableRow key={`cat-${idx}`} sx={{ bgcolor: '#DBEAFE' }}>
+                      <TableCell colSpan={4} sx={{ py: 1.5 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E40AF', fontSize: '0.9rem', letterSpacing: '0.02em' }}>
                           {row.category}
                         </Typography>
                       </TableCell>
@@ -152,30 +160,37 @@ export default function ComparisonTable() {
                 return (
                   <TableRow
                     key={`row-${idx}`}
-                    sx={{ '&:hover': { bgcolor: '#f7f9fa' } }}
+                    sx={{
+                      '&:hover': { bgcolor: '#F1F5F9' },
+                      transition: 'background-color 0.15s ease',
+                    }}
                   >
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Typography variant="body2" sx={{ color: '#012c6d' }}>
+                    <TableCell sx={{ py: 2, pl: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 500 }}>
                           {row.feature}
                         </Typography>
-                        <Box
-                          component="span"
-                          sx={{ display: 'inline-flex', cursor: 'pointer' }}
-                          title={row.tooltip}
-                        >
-                          <InfoOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                        </Box>
+                        {row.tooltip && (
+                          <Box
+                            component="span"
+                            sx={{ display: 'inline-flex', cursor: 'pointer', color: '#94A3B8', '&:hover': { color: '#2563EB' } }}
+                            title={row.tooltip}
+                          >
+                            <Info size={14} />
+                          </Box>
+                        )}
                       </Box>
                     </TableCell>
                     {row.values.map((val, i) => (
-                      <TableCell key={`${idx}-${i}`} align="center">
+                      <TableCell key={`${idx}-${i}`} align="center" sx={{ py: 2 }}>
                         {isCheck(val) ? (
-                          <CheckCircleIcon sx={{ color: '#012c6d', fontSize: 18 }} />
+                          <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#DCFCE7', borderRadius: '50%', width: 26, height: 26 }}>
+                            <Check size={14} color="#10B981" strokeWidth={3} />
+                          </Box>
                         ) : isDash(val) ? (
-                          <Typography variant="body2" color="text.secondary">-</Typography>
+                          <Minus size={16} color="#94A3B8" />
                         ) : (
-                          <Typography variant="body2" sx={{ color: '#012c6d' }}>
+                          <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 500 }}>
                             {val}
                           </Typography>
                         )}
@@ -186,24 +201,25 @@ export default function ComparisonTable() {
               })}
 
               <TableRow>
-                <TableCell>
+                <TableCell sx={{ py: 2, pl: 3 }}>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={webSwitch}
                         onChange={() => setWebSwitch(!webSwitch)}
                         sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': { color: '#3d83df' },
-                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#3d83df' },
+                          '& .MuiSwitch-switchBase.Mui-checked': { color: '#2563EB' },
+                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#93C5FD' },
+                          '& .MuiSwitch-track': { bgcolor: '#E2E8F0' },
                         }}
                       />
                     }
                     label={
                       <Box>
-                        <Typography variant="body2" sx={{ color: '#012c6d' }}>
+                        <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600 }}>
                           Página web profesional
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" sx={{ color: '#64748B' }}>
                           S/55 por mes, con cargo anual
                         </Typography>
                       </Box>
@@ -211,8 +227,8 @@ export default function ComparisonTable() {
                   />
                 </TableCell>
                 {[0, 1, 2].map((i) => (
-                  <TableCell key={`switch-${i}`} align="center">
-                    <Typography variant="caption" color="text.secondary">
+                  <TableCell key={`switch-${i}`} align="center" sx={{ py: 2 }}>
+                    <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 500 }}>
                       Costo adicional
                     </Typography>
                   </TableCell>

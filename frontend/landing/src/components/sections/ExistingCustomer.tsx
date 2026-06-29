@@ -1,39 +1,44 @@
 import { Box, Container, Typography, Card, CardContent, Button } from '@mui/material';
-import DevicesIcon from '@mui/icons-material/Devices';
+import { motion } from 'framer-motion';
+import { Monitor, ArrowRight } from 'lucide-react';
 
 export default function ExistingCustomer() {
   return (
-    <Box sx={{ bgcolor: '#e8f4fd', py: { xs: 6, md: 8 } }}>
-      <Container maxWidth="md">
-        <Typography
-          variant="h4"
-          sx={{ textAlign: 'center', color: '#012c6d', fontWeight: 700, mb: 1 }}
+    <Box sx={{ bgcolor: '#F8FAFC', py: { xs: 6, md: 8 } }}>
+      <Container maxWidth="sm">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
         >
-          ¿Ya eres cliente?
-        </Typography>
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ textAlign: 'center', mb: 4 }}
-        >
-          Descubre cómo hacer que tu consulta sea aún más exitosa.
-        </Typography>
+          <Typography
+            variant="h4"
+            sx={{ textAlign: 'center', color: '#0F4C81', fontWeight: 700, mb: 1 }}
+          >
+            ¿Ya eres cliente?
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ textAlign: 'center', color: '#475569', mb: 4 }}
+          >
+            Descubre cómo hacer que tu consulta sea aún más exitosa.
+          </Typography>
 
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Card
             sx={{
-              maxWidth: 400,
-              textAlign: 'center',
-              boxShadow: '0 1px 7px rgba(0,0,0,0.15)',
-              borderRadius: 2,
+              background: 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)',
+              borderRadius: '16px',
+              boxShadow: '0 4px 20px rgba(37,99,235,0.08)',
+              border: '1px solid rgba(37,99,235,0.1)',
             }}
           >
-            <CardContent sx={{ p: 4 }}>
+            <CardContent sx={{ p: 4, textAlign: 'center' }}>
               <Box
                 sx={{
-                  width: 60,
-                  height: 60,
-                  bgcolor: '#e8f4fd',
+                  width: 64,
+                  height: 64,
+                  bgcolor: 'rgba(255,255,255,0.7)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -42,29 +47,43 @@ export default function ExistingCustomer() {
                   mb: 2,
                 }}
               >
-                <DevicesIcon sx={{ fontSize: 32, color: '#012c6d' }} />
+                <Monitor size={32} color="#2563EB" />
               </Box>
-              <Typography variant="h5" sx={{ color: '#012c6d', fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#0F4C81', fontWeight: 700, mb: 1 }}>
                 Página web profesional
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#475569', mb: 3, lineHeight: 1.6 }}
+              >
                 Obtén un sitio web personalizado con todos tus detalles de contacto, acceso a
                 reservas en línea y opiniones de pacientes.
               </Typography>
               <Button
-                variant="outlined"
+                variant="contained"
+                endIcon={<ArrowRight size={18} />}
                 href="#"
                 sx={{
-                  borderColor: '#3d83df',
-                  color: '#3d83df',
-                  '&:hover': { bgcolor: 'rgba(61,131,223,0.04)' },
+                  background: 'linear-gradient(135deg, #2563EB, #0F4C81)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 4,
+                  py: 1.2,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 4px 14px rgba(37,99,235,0.25)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1D4ED8, #0A3A6B)',
+                    boxShadow: '0 6px 20px rgba(37,99,235,0.35)',
+                  },
                 }}
               >
                 Conoce más
               </Button>
             </CardContent>
           </Card>
-        </Box>
+        </motion.div>
       </Container>
     </Box>
   );
