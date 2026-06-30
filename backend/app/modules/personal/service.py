@@ -106,8 +106,18 @@ class EspecialidadService:
         self.db = db
         self.uow = uow or UnitOfWork(db)
 
-    def list(self) -> list[dict]:
-        return [_especialidad_to_dict(e) for e in self.db.query(Especialidad).order_by(Especialidad.NombreEspecialidad).all()]
+    def list(self, departamento_id: int | None = None) -> list[dict]:
+        query = self.db.query(Especialidad)
+        if departamento_id:
+            query = query.filter(
+                Especialidad.EspecialidadID.in_(
+                    self.db.query(Medico.EspecialidadID).filter(
+                        Medico.DepartamentoID == departamento_id,
+                        Medico.Activo == True,
+                    ).distinct()
+                )
+            )
+        return [_especialidad_to_dict(e) for e in query.order_by(Especialidad.NombreEspecialidad).all()]
 
     def get(self, especialidad_id: int) -> dict:
         item = self.db.query(Especialidad).filter(Especialidad.EspecialidadID == especialidad_id).first()
@@ -289,6 +299,9 @@ class MedicoService:
         return _medico_to_dict(item)
 
     def create(self, data: MedicoCreate) -> dict:
+        existe = self.db.query(Usuario).filter(Usuario.Email == data.email).first()
+        if existe:
+            raise ConflictError(f"Ya existe un usuario con el email '{data.email}'")
         role = _ensure_role(self.db, "Médico")
         usuario = Usuario(
             ClinicalID=data.clinical_id,

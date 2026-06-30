@@ -253,23 +253,29 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let activo = true;
-    setCargando(true);
-    setError('');
+    const cargar = () => {
+      setCargando(true);
+      setError('');
 
-    api
-      .get<DashboardResponse>(`/dashboard?periodo=${filtro}`)
-      .then(({ data: respuesta }) => {
-        if (activo) setData(respuesta);
-      })
-      .catch(() => {
-        if (activo) setError('No se pudo cargar la información del dashboard.');
-      })
-      .finally(() => {
-        if (activo) setCargando(false);
-      });
+      api
+        .get<DashboardResponse>(`/dashboard?periodo=${filtro}`)
+        .then(({ data: respuesta }) => {
+          if (activo) setData(respuesta);
+        })
+        .catch(() => {
+          if (activo) setError('No se pudo cargar la información del dashboard.');
+        })
+        .finally(() => {
+          if (activo) setCargando(false);
+        });
+    };
+
+    cargar();
+    const intervalo = setInterval(cargar, 30_000);
 
     return () => {
       activo = false;
+      clearInterval(intervalo);
     };
   }, [filtro]);
 
