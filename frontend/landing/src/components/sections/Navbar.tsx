@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -32,10 +32,46 @@ const navLinks = [
   },
 ];
 
+const SECTION_IDS = ['pricing', 'faq'];
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [mobileSubmenu, setMobileSubmenu] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { threshold: 0.2, rootMargin: '-80px 0px 0px 0px' },
+    );
+
+    const elements = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+    elements.forEach((el) => observer.observe(el!));
+    return () => elements.forEach((el) => observer.unobserve(el!));
+  }, []);
+
+  const closeDrawer = () => {
+    setMobileOpen(false);
+    setMobileSubmenu(false);
+  };
+
+  const handleDropdownEnter = (label: string, el: HTMLElement) => {
+    setActiveDropdown(label);
+    setAnchorEl(el);
+  };
+
+  const handleDropdownLeave = () => {
+    setActiveDropdown(null);
+    setAnchorEl(null);
+  };
 
   return (
     <>
@@ -86,13 +122,16 @@ export default function Navbar() {
 
             <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', gap: 0.5 }}>
               {navLinks.map((link) => (
-                <Box key={link.label}>
+                <Box key={link.label}
+                  onMouseEnter={(e) => link.children && handleDropdownEnter(link.label, e.currentTarget)}
+                  onMouseLeave={handleDropdownLeave}
+                >
                   {link.children ? (
                     <>
                       <Button
                         color="inherit"
                         sx={{
-                          color: '#475569',
+                          color: activeDropdown === link.label ? '#2563EB' : '#475569',
                           fontWeight: 500,
                           textTransform: 'none',
                           fontSize: '0.95rem',
@@ -105,7 +144,7 @@ export default function Navbar() {
                             bottom: 0,
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            width: 0,
+                            width: activeDropdown === link.label ? '60%' : 0,
                             height: 2.5,
                             bgcolor: '#2563EB',
                             borderRadius: '2px',
@@ -115,17 +154,16 @@ export default function Navbar() {
                           '&:hover': { bgcolor: 'transparent', color: '#2563EB' },
                         }}
                         endIcon={<ChevronDown size={16} />}
-                        onMouseEnter={(e) => setAnchorEl(e.currentTarget)}
                       >
                         {link.label}
                       </Button>
                       <Menu
                         anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={() => setAnchorEl(null)}
+                        open={activeDropdown === link.label}
+                        onClose={handleDropdownLeave}
                         slotProps={{
+                          list: { onMouseLeave: handleDropdownLeave },
                           paper: {
-                            onMouseLeave: () => setAnchorEl(null),
                             sx: {
                               mt: 1.5,
                               borderRadius: 2,
@@ -142,7 +180,7 @@ export default function Navbar() {
                         {link.children.map((child) => (
                           <MenuItem
                             key={child.label}
-                            onClick={() => setAnchorEl(null)}
+                            onClick={handleDropdownLeave}
                             sx={{ py: 1.5, px: 2, borderRadius: 1.5, mx: 0.5 }}
                           >
                             <Box>
@@ -164,7 +202,7 @@ export default function Navbar() {
                     <Button
                       href={link.href}
                       sx={{
-                        color: '#475569',
+                        color: link.href === `#${activeSection}` ? '#2563EB' : '#475569',
                         fontWeight: 500,
                         textTransform: 'none',
                         fontSize: '0.95rem',
@@ -177,7 +215,7 @@ export default function Navbar() {
                           bottom: 0,
                           left: '50%',
                           transform: 'translateX(-50%)',
-                          width: 0,
+                          width: link.href === `#${activeSection}` ? '60%' : 0,
                           height: 2.5,
                           bgcolor: '#2563EB',
                           borderRadius: '2px',
@@ -217,6 +255,7 @@ export default function Navbar() {
             </Box>
 
             <IconButton
+              aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
               sx={{
                 display: { lg: 'none' },
                 color: '#0F172A',
@@ -333,7 +372,12 @@ export default function Navbar() {
                   </>
                 ) : (
                   <ListItem disablePadding>
-                    <ListItemButton sx={{ borderRadius: 2, mx: 1, my: 0.25 }}>
+                    <ListItemButton
+                      component="a"
+                      href={link.href}
+                      onClick={closeDrawer}
+                      sx={{ borderRadius: 2, mx: 1, my: 0.25 }}
+                    >
                       <ListItemText
                         primary={link.label}
                         slotProps={{

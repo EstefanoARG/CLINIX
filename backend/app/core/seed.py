@@ -127,12 +127,13 @@ def _seed_landing_data(db: Session) -> None:
                 "Periodo": "Al mes, con cargo anual",
                 "ColorAcento": "#D85F99",
                 "Icono": "star",
-                "IntroBeneficios": "Todo lo del perfil gratuito y:",
+                "IntroBeneficios": "Beneficios incluidos:",
                 "Orden": 1,
                 "features": [
                     ("Calendario para consulta en linea", "Permite que tus pacientes reserven consultas en linea."),
-                    ("Recordatorios por correo y notificaciones", "Reduce ausencias con recordatorios automaticos."),
-                    ("Campanas de SMS", "Mantente en contacto con tus pacientes."),
+                    ("Recordatorios por correo", "Reduce ausencias con recordatorios automaticos."),
+                    ("Portal de pacientes", "Tus pacientes se registran, ven sus citas y reservan online."),
+                    ("Notificaciones por correo", "Confirmaciones y recordatorios via email."),
                 ],
             },
             {
@@ -149,9 +150,10 @@ def _seed_landing_data(db: Session) -> None:
                 "EtiquetaPopular": "Mas Popular",
                 "Orden": 2,
                 "features": [
-                    ("Episodios clinicos", "Recopila toda la informacion de tus pacientes."),
-                    ("Recordatorios mediante SMS", "Reduce ausencias con recordatorios via SMS."),
-                    ("Consulta en linea", "Videoconsulta segura con tus pacientes."),
+                    ("Episodios clinicos", "Recopila toda la informacion clinica de tus pacientes."),
+                    ("Adjuntos a historias clinicas", "Sube PDF, imagenes y documentos DICOM."),
+                    ("Dashboard de metricas", "Visualiza indicadores clave de tu consulta."),
+                    ("Perfil publico de medico", "Los pacientes te encuentran y reservan online."),
                 ],
             },
             {
@@ -166,9 +168,10 @@ def _seed_landing_data(db: Session) -> None:
                 "IntroBeneficios": "Todos los beneficios del plan Plus y:",
                 "Orden": 3,
                 "features": [
-                    ("Diseno de tu perfil", "Perfil publico optimizado para destacar."),
-                    ("Lista de espera", "Notifica a tus pacientes si se libera un espacio."),
-                    ("Envios masivos", "Cancela citas y envia mensajes masivos."),
+                    ("Gestion de admisiones", "Administra ingresos, habitaciones y altas hospitalarias."),
+                    ("Auditoria y trazabilidad", "Registro detallado de todas las acciones del sistema."),
+                    ("Multiples roles y sedes", "Medicos, enfermeras, recepcionistas con acceso granular."),
+                    ("Reportes avanzados", "Informes personalizados de tu operacion clinica."),
                 ],
             },
         ]
@@ -226,29 +229,32 @@ def _seed_landing_data(db: Session) -> None:
             ("Los planes tienen compromiso de permanencia?", "La suscripcion a un plan tiene un periodo de permanencia para asegurar implementacion y acompanamiento."),
             ("Cuales son las modalidades de pago disponibles?", "El pago de la suscripcion es anual. Tambien puedes contratar una pagina web profesional junto con tu plan."),
             ("Necesito conocimientos de computo?", "No. La agenda y las herramientas estan pensadas para operar sin instalacion ni soporte tecnico permanente."),
-            ("Hay limite de destinatarios para campanas?", "El limite se basa en los correos o SMS disponibles por mes segun el plan contratado."),
+            ("Pueden los pacientes reservar citas online?", "Si. A traves del portal de pacientes, pueden ver disponibilidad y reservar citas sin necesidad de llamar."),
             ("Que posicion ocupare en los listados?", "Los planes pagos permiten mejorar la visibilidad frente a perfiles gratuitos."),
-            ("Como puedo ver mis facturas?", "Las facturas se envian al correo asociado y pueden consultarse desde el modulo de facturacion."),
+            ("Que documentos se pueden adjuntar a la historia clinica?", "Puedes adjuntar PDF, imagenes y documentos DICOM directamente a la historia clinica del paciente."),
         ]
         for index, (question, answer) in enumerate(faqs, start=1):
             db.add(LandingFAQ(Pregunta=question, Respuesta=answer, Orden=index))
 
     if db.query(LandingComparisonRow).count() == 0:
         rows = [
-            ("Comunicacion con pacientes", "", "", ["", "", ""]),
-            ("", "Recordatorios de visitas", "Reduce las ausencias con recordatorios automaticos.", ["Via e-mail y notificaciones", "Via e-mail, SMS y notificaciones", "Via e-mail, app, SMS y envios masivos"]),
-            ("", "Campanas de SMS", "Manten el contacto con tus pacientes.", ["300 SMS al mes", "1000 SMS al mes", "5000 SMS al mes"]),
-            ("", "Mensajes", "Canal seguro para comunicarte con tus pacientes.", ["check", "check", "check"]),
-            ("Gestion del consultorio", "", "", ["", "", ""]),
+            ("Gestion de pacientes", "", "", ["", "", ""]),
             ("", "Reserva online de cita", "Permite que los pacientes programen su cita.", ["check", "check", "check"]),
-            ("", "Episodios clinicos", "Recopila informacion de pacientes.", ["-", "check", "check"]),
-            ("", "Lista de espera", "Completa turnos cancelados.", ["-", "check", "check"]),
-            ("", "Consulta en linea", "Videoconsulta segura.", ["Solo calendario digital", "Calendario y videoconsulta", "Calendario y videoconsulta"]),
-            ("", "Informes en tiempo real", "Accede al rendimiento de tu consulta.", ["check", "check", "check"]),
-            ("Visibilidad", "", "", ["", "", ""]),
-            ("", "Visibilidad en listados", "Mejora tu posicion en CLINIX.", ["check", "check", "check"]),
-            ("", "Opiniones", "Construye confianza con opiniones.", ["check", "check", "check"]),
-            ("", "Diseno de perfil", "Perfil publico optimizado.", ["Basico", "Basico", "Mejorado"]),
+            ("", "Portal de pacientes", "Portal web para que los pacientes gestionen sus citas.", ["check", "check", "check"]),
+            ("", "Recordatorios de visitas", "Reduce las ausencias con recordatorios automaticos.", ["Via e-mail", "Via e-mail", "Via e-mail y dashboard"]),
+            ("", "Episodios clinicos", "Recopila informacion clinica del paciente.", ["-", "check", "check"]),
+            ("", "Adjuntos a historia clinica", "Sube PDF, imagenes y DICOM.", ["-", "check", "check"]),
+            ("", "CIE-10 diagnosticos", "Catalogo completo de diagnosticos medicos.", ["check", "check", "check"]),
+            ("Gestion del consultorio", "", "", ["", "", ""]),
+            ("", "Calendario de consulta", "Gestiona tu agenda y disponibilidad.", ["check", "check", "check"]),
+            ("", "Dashboard de metricas", "Visualiza indicadores clave de tu consulta.", ["check", "check", "check"]),
+            ("", "Perfil publico de medico", "Los pacientes te encuentran en los listados.", ["Basico", "Mejorado", "Destacado"]),
+            ("", "Notificaciones por correo", "Confirmaciones y recordatorios automaticos.", ["check", "check", "check"]),
+            ("Hospitalización y roles", "", "", ["", "", ""]),
+            ("", "Gestion de admisiones", "Administra ingresos, habitaciones y altas.", ["-", "-", "check"]),
+            ("", "Auditoria y trazabilidad", "Registro detallado de acciones del sistema.", ["-", "-", "check"]),
+            ("", "Multiples roles", "Medicos, enfermeras, recepcionistas.", ["-", "-", "check"]),
+            ("", "Reportes avanzados", "Informes personalizados de operacion.", ["-", "-", "check"]),
         ]
         for index, (category, feature, tooltip, values) in enumerate(rows, start=1):
             db.add(LandingComparisonRow(

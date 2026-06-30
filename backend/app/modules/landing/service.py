@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import (
@@ -13,7 +14,16 @@ from app.models import (
     LandingTestimonial,
     Paciente,
 )
-from app.modules.landing.schemas import LandingContactCreate
+from app.modules.landing.schemas import (
+    LandingComparisonRowResponse,
+    LandingContactCreate,
+    LandingDataResponse,
+    LandingFAQResponse,
+    LandingMetricResponse,
+    LandingPlanFeatureResponse,
+    LandingPlanResponse,
+    LandingTestimonialResponse,
+)
 
 
 def _number(value: Decimal | int | float | None) -> float:
@@ -30,114 +40,123 @@ class LandingService:
         if metric.Fuente == "clinicas_count":
             return float(
                 self.db.query(Clinica)
-                .filter(Clinica.Activo == True)  # noqa: E712
+                .filter(Clinica.Activo == True)
                 .count()
             )
         if metric.Fuente == "pacientes_count":
             return float(
                 self.db.query(Paciente)
-                .filter(Paciente.Activo == True)  # noqa: E712
+                .filter(Paciente.Activo == True)
                 .count()
             )
         return _number(metric.Valor)
 
-    def get_public_data(self) -> dict:
+    def get_public_data(self) -> LandingDataResponse:
         plans = (
             self.db.query(LandingPlan)
             .options(joinedload(LandingPlan.features))
-            .filter(LandingPlan.Activo == True)  # noqa: E712
+            .filter(LandingPlan.Activo == True)
             .order_by(LandingPlan.Orden, LandingPlan.PlanID)
             .all()
         )
         metrics = (
             self.db.query(LandingMetric)
-            .filter(LandingMetric.Activo == True)  # noqa: E712
+            .filter(LandingMetric.Activo == True)
             .order_by(LandingMetric.Orden, LandingMetric.MetricID)
             .all()
         )
         testimonials = (
             self.db.query(LandingTestimonial)
-            .filter(LandingTestimonial.Activo == True)  # noqa: E712
+            .filter(LandingTestimonial.Activo == True)
             .order_by(LandingTestimonial.Orden, LandingTestimonial.TestimonialID)
             .all()
         )
         faqs = (
             self.db.query(LandingFAQ)
-            .filter(LandingFAQ.Activo == True)  # noqa: E712
+            .filter(LandingFAQ.Activo == True)
             .order_by(LandingFAQ.Orden, LandingFAQ.FAQID)
             .all()
         )
         comparison_rows = (
             self.db.query(LandingComparisonRow)
-            .filter(LandingComparisonRow.Activo == True)  # noqa: E712
+            .filter(LandingComparisonRow.Activo == True)
             .order_by(LandingComparisonRow.Orden, LandingComparisonRow.RowID)
             .all()
         )
 
-        return {
-            "plans": [
-                {
-                    "id": plan.Slug,
-                    "name": plan.Nombre,
-                    "description": plan.Descripcion,
-                    "price": _number(plan.Precio),
-                    "hidden_price": _number(plan.PrecioConWeb),
-                    "period": plan.Periodo,
-                    "accent_color": plan.ColorAcento,
-                    "icon": plan.Icono,
-                    "benefits_intro": plan.IntroBeneficios,
-                    "popular": bool(plan.Popular),
-                    "popular_label": plan.EtiquetaPopular,
-                    "button_text": plan.TextoBoton,
-                    "button_href": plan.EnlaceBoton,
-                    "features": [
-                        {
-                            "text": feature.Texto,
-                            "tooltip": feature.Tooltip,
-                        }
+        def parse_json(value: str | None) -> list[str]:
+            if not value:
+                return []
+            try:
+                result = json.loads(value)
+                return result if isinstance(result, list) else []
+            except (json.JSONDecodeError, TypeError):
+                return []
+
+        return LandingDataResponse(
+            plans=[
+                LandingPlanResponse(
+                    id=plan.Slug,
+                    name=plan.Nombre,
+                    description=plan.Descripcion,
+                    price=_number(plan.Precio),
+                    precio_con_web=_number(plan.PrecioConWeb),
+                    period=plan.Periodo,
+                    accent_color=plan.ColorAcento,
+                    icon=plan.Icono,
+                    benefits_intro=plan.IntroBeneficios,
+                    popular=bool(plan.Popular),
+                    popular_label=plan.EtiquetaPopular,
+                    button_text=plan.TextoBoton,
+                    button_href=plan.EnlaceBoton,
+                    features=[
+                        LandingPlanFeatureResponse(
+                            text=feature.Texto,
+                            tooltip=feature.Tooltip,
+                        )
                         for feature in plan.features
                         if feature.Activo
                     ],
-                }
+                )
                 for plan in plans
             ],
-            "metrics": [
-                {
-                    "id": metric.Slug,
-                    "icon": metric.Icono,
-                    "value": self._metric_value(metric),
-                    "suffix": metric.Sufijo,
-                    "label": metric.Etiqueta,
-                }
+            metrics=[
+                LandingMetricResponse(
+                    id=metric.Slug,
+                    icon=metric.Icono,
+                    value=self._metric_value(metric),
+                    suffix=metric.Sufijo,
+                    label=metric.Etiqueta,
+                )
                 for metric in metrics
             ],
-            "testimonials": [
-                {
-                    "name": item.Nombre,
-                    "specialty": item.Especialidad,
-                    "location": item.Ubicacion,
-                    "avatar": item.AvatarURL,
-                    "text": item.Texto,
-                }
+            testimonials=[
+                LandingTestimonialResponse(
+                    name=item.Nombre,
+                    specialty=item.Especialidad,
+                    location=item.Ubicacion,
+                    avatar=item.AvatarURL,
+                    text=item.Texto,
+                )
                 for item in testimonials
             ],
-            "faqs": [
-                {
-                    "question": item.Pregunta,
-                    "answer": item.Respuesta,
-                }
+            faqs=[
+                LandingFAQResponse(
+                    question=item.Pregunta,
+                    answer=item.Respuesta,
+                )
                 for item in faqs
             ],
-            "comparison_rows": [
-                {
-                    "category": item.Categoria,
-                    "feature": item.Caracteristica or "",
-                    "tooltip": item.Tooltip or "",
-                    "values": json.loads(item.ValoresJSON),
-                }
+            comparison_rows=[
+                LandingComparisonRowResponse(
+                    category=item.Categoria,
+                    feature=item.Caracteristica or "",
+                    tooltip=item.Tooltip or "",
+                    values=parse_json(item.ValoresJSON),
+                )
                 for item in comparison_rows
             ],
-        }
+        )
 
     def create_contact(self, data: LandingContactCreate) -> dict:
         lead = LandingLead(
@@ -150,8 +169,12 @@ class LandingService:
             AceptaMarketing=data.accepts_marketing,
         )
         self.db.add(lead)
-        self.db.commit()
-        self.db.refresh(lead)
+        try:
+            self.db.commit()
+            self.db.refresh(lead)
+        except SQLAlchemyError:
+            self.db.rollback()
+            raise
         return {
             "lead_id": lead.LeadID,
             "message": "Solicitud registrada correctamente.",

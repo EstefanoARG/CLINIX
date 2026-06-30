@@ -22,6 +22,7 @@ export default function SupportSection() {
               component="img"
               src="/images/Fundadores.png"
               alt="Equipo de soporte"
+              loading="lazy"
               sx={{
                 width: '100%',
                 height: '100%',
@@ -80,8 +81,8 @@ export default function SupportSection() {
                 Capacitación y soporte constante incluido en todos los planes
               </Typography>
               <Typography variant="body1" sx={{ color: '#475569', mb: 4, lineHeight: 1.7, fontSize: '1.05rem' }}>
-                Te guiaremos en cada paso. Nuestro equipo estará para ti, desde la importación de
-                tus contactos hasta que domines cada una de las funcionalidades. ¡Obtén ayuda rápida
+                Te guiaremos en cada paso. Nuestro equipo estará para ti, desde la configuración de
+                tu consulta hasta que domines cada una de las funcionalidades. ¡Obtén ayuda rápida
                 y confiable siempre!
               </Typography>
               <Button

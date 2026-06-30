@@ -1,44 +1,55 @@
-import { useEffect, useState } from 'react';
-import { Alert, Box, CircularProgress } from '@mui/material';
+import { lazy } from 'react';
+import { Alert, Box, Button, Container } from '@mui/material';
+import { RefreshCw } from 'lucide-react';
+import { useLandingData } from '../hooks/useLandingData';
+import { HeroSkeleton, CardsSkeleton, StatsSkeleton, TableSkeleton } from '../components/LandingSkeleton';
 import PricingHero from '../components/sections/PricingHero';
-import PricingCards from '../components/sections/PricingCards';
-import Stats from '../components/sections/Stats';
-import ComparisonTable from '../components/sections/ComparisonTable';
-import Testimonials from '../components/sections/Testimonials';
-import SupportSection from '../components/sections/SupportSection';
-import FAQ from '../components/sections/FAQ';
-import ExistingCustomer from '../components/sections/ExistingCustomer';
-import ContactForm from '../components/sections/ContactForm';
-import { getLandingData } from '../services/landingApi';
-import type { LandingData } from '../types';
+
+const PricingCards = lazy(() => import('../components/sections/PricingCards'));
+const Stats = lazy(() => import('../components/sections/Stats'));
+const ComparisonTable = lazy(() => import('../components/sections/ComparisonTable'));
+const Testimonials = lazy(() => import('../components/sections/Testimonials'));
+const SupportSection = lazy(() => import('../components/sections/SupportSection'));
+const FAQ = lazy(() => import('../components/sections/FAQ'));
+const ExistingCustomer = lazy(() => import('../components/sections/ExistingCustomer'));
+const ContactForm = lazy(() => import('../components/sections/ContactForm'));
 
 export default function HomePage() {
-  const [landingData, setLandingData] = useState<LandingData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    getLandingData()
-      .then((data) => {
-        setLandingData(data);
-        setError(false);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, loading, error, retry } = useLandingData();
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', bgcolor: '#F8FAFC' }}>
-        <CircularProgress />
+      <Box>
+        <HeroSkeleton />
+        <CardsSkeleton />
+        <StatsSkeleton />
+        <TableSkeleton />
       </Box>
     );
   }
 
-  if (error || !landingData) {
+  if (error || !data) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', bgcolor: '#F8FAFC', p: 3 }}>
-        <Alert severity="error">No se pudo cargar el contenido del landing desde la API.</Alert>
+        <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            No se pudo cargar el contenido del landing desde la API.
+          </Alert>
+          <Button
+            variant="contained"
+            startIcon={<RefreshCw size={18} />}
+            onClick={retry}
+            sx={{
+              background: 'linear-gradient(135deg, #2563EB, #0F4C81)',
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 4,
+            }}
+          >
+            Reintentar
+          </Button>
+        </Container>
       </Box>
     );
   }
@@ -46,12 +57,12 @@ export default function HomePage() {
   return (
     <Box>
       <PricingHero />
-      <PricingCards plans={landingData.plans} />
-      <Stats metrics={landingData.metrics} />
-      <ComparisonTable plans={landingData.plans} rows={landingData.comparisonRows} />
-      <Testimonials reviews={landingData.testimonials} />
+      <PricingCards plans={data.plans} />
+      <Stats metrics={data.metrics} />
+      <ComparisonTable plans={data.plans} rows={data.comparisonRows} />
+      <Testimonials reviews={data.testimonials} />
       <SupportSection />
-      <FAQ items={landingData.faqs} />
+      <FAQ items={data.faqs} />
       <ExistingCustomer />
       <ContactForm />
     </Box>

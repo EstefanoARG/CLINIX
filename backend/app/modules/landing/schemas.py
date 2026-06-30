@@ -11,7 +11,7 @@ class LandingPlanResponse(BaseModel):
     name: str
     description: str
     price: float
-    hidden_price: float
+    precio_con_web: float
     period: str
     accent_color: str
     icon: str

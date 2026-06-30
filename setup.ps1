@@ -4,6 +4,7 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $backend = Join-Path $root 'backend'
 $admin = Join-Path $root 'frontend\admin'
 $public = Join-Path $root 'frontend\public'
+$landing = Join-Path $root 'frontend\landing'
 
 $pythonCandidates = @(
     (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python312\python.exe'),
@@ -29,7 +30,10 @@ try { npm.cmd ci } finally { Pop-Location }
 Push-Location $public
 try { npm.cmd ci } finally { Pop-Location }
 
-foreach ($app in @($backend, $admin, $public)) {
+Push-Location $landing
+try { npm.cmd ci } finally { Pop-Location }
+
+foreach ($app in @($backend, $admin, $public, $landing)) {
     $example = Join-Path $app '.env.example'
     $target = Join-Path $app '.env'
     if ((Test-Path -LiteralPath $example) -and -not (Test-Path -LiteralPath $target)) {
