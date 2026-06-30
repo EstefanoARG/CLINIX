@@ -107,7 +107,7 @@ class DashboardService:
             for estado in ("Programada", "Confirmada", "En curso")
         )
         citas_canceladas = sum(
-            estados_citas[estado] for estado in ("Cancelada", "No asistió", "No asistiÃ³")
+            estados_citas[estado] for estado in ("Cancelada", "No asistió")
         )
 
         reservas_periodo = (
@@ -125,7 +125,11 @@ class DashboardService:
         )
         reservas_pendientes = (
             self.db.query(func.count(ReservaWeb.ReservaID))
-            .filter(ReservaWeb.Estado == "Pendiente")
+            .filter(
+                ReservaWeb.Estado == "Pendiente",
+                ReservaWeb.FechaSolicitud >= inicio,
+                ReservaWeb.FechaSolicitud < fin,
+            )
             .scalar()
             or 0
         )
@@ -213,7 +217,7 @@ class DashboardService:
             serie_por_dia[dia]["citas"] += 1
             if cita.EstadoCita == "Completada":
                 serie_por_dia[dia]["completadas"] += 1
-            if cita.EstadoCita in ("Cancelada", "No asistió", "No asistiÃ³"):
+            if cita.EstadoCita in ("Cancelada", "No asistió"):
                 serie_por_dia[dia]["canceladas"] += 1
         for reserva in reservas_tendencia:
             serie_por_dia[reserva.FechaSolicitud.date()]["reservas"] += 1

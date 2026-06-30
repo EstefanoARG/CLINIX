@@ -20,8 +20,12 @@ AdminOrMedico = require_role(["Administrador", "Médico", "Recepcionista", "Enfe
 # --- Especialidades ---
 
 @router.get("/especialidades", response_model=list[EspecialidadResponse])
-def list_especialidades(db: DbSession, _ = AdminOrMedico):
-    return EspecialidadService(db).list()
+def list_especialidades(
+    db: DbSession,
+    _ = AdminOrMedico,
+    departamento_id: int | None = None,
+):
+    return EspecialidadService(db).list(departamento_id=departamento_id)
 
 @router.get("/especialidades/{especialidad_id}", response_model=EspecialidadResponse)
 def get_especialidad(especialidad_id: int, db: DbSession, _ = AdminOrMedico):

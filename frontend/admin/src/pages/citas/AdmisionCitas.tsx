@@ -135,6 +135,12 @@ export default function AdmisionCitas() {
         observaciones: observaciones || undefined,
       });
       setSnackbar({ message: 'Cita creada exitosamente', severity: 'success' });
+      // Reload slots to reflect new cita
+      if (medicoId && fechaCita) {
+        api.get<DisponibilidadResponse>(`/disponibilidad/${medicoId}?fecha=${fechaCita}`)
+          .then(({ data }) => setSlots(data.slots ?? []))
+          .catch(() => {});
+      }
       // Reset form
       setPacienteSelected(null);
       setPacienteSearch('');

@@ -330,7 +330,7 @@ class CitaService:
         if fecha_hasta:
             query = query.filter(Cita.FechaHora <= datetime.combine(fecha_hasta, datetime.max.time()))
         total = query.count()
-        items = query.order_by(Cita.FechaHora).offset(skip).limit(limit).all()
+        items = query.order_by(Cita.FechaHora.desc()).offset(skip).limit(limit).all()
         return {"items": [_cita_to_dict(c) for c in items], "total": total}
 
     def get(self, cita_id: int) -> dict:

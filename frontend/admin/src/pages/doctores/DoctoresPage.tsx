@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
-  FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Snackbar,
+  FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Paper, Select, Snackbar,
   Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -20,6 +20,7 @@ const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', '
 export default function DoctoresPage() {
   const [items, setItems] = useState<Medico[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
+  const [especialidadesFiltradas, setEspecialidadesFiltradas] = useState<Especialidad[]>([]);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [ubicaciones, setUbicaciones] = useState<UbicacionFisica[]>([]);
   const [search, setSearch] = useState('');
@@ -45,6 +46,7 @@ export default function DoctoresPage() {
       api.get<UbicacionFisica[]>('/ubicaciones'),
     ]).then(([a, b, c]) => {
       setEspecialidades(a.data);
+      setEspecialidadesFiltradas(a.data);
       setDepartamentos(b.data);
       setUbicaciones(c.data);
     });
@@ -52,25 +54,31 @@ export default function DoctoresPage() {
 
   const showForm = (item?: Medico) => {
     setEditing(item ?? null);
+    const col = item?.numero_colegiatura?.replace(/^CMP[- ]?/i, '') ?? '';
     setForm(item ? {
       nombre: item.nombre ?? '', apellido: item.apellido ?? '', dni: '', email: item.email ?? '',
-      telefono: item.telefono ?? '', password: 'clinix123', numero_colegiatura: item.numero_colegiatura,
+      telefono: item.telefono ?? '', password: 'clinix123', numero_colegiatura: col,
       especialidad_id: item.especialidad_id, departamento_id: item.departamento_id, ubicacion_id: 0,
     } : EMPTY_FORM);
+    if (!item?.departamento_id) setEspecialidadesFiltradas(especialidades);
     setOpen(true);
   };
 
   const save = async () => {
+    const colegiatura = form.numero_colegiatura.toUpperCase().startsWith('CMP')
+      ? form.numero_colegiatura
+      : `CMP-${form.numero_colegiatura}`;
     try {
       if (editing) {
         await api.put(`/medicos/${editing.medico_id}`, {
           especialidad_id: form.especialidad_id,
           departamento_id: form.departamento_id,
-          numero_colegiatura: form.numero_colegiatura,
+          numero_colegiatura: colegiatura,
         });
       } else {
         await api.post('/medicos', {
           ...form,
+          numero_colegiatura: colegiatura,
           clinical_id: 1,
           ubicacion_id: form.ubicacion_id || null,
         });
@@ -116,6 +124,21 @@ export default function DoctoresPage() {
     await api.delete(`/horarios/${schedule.horario_id}`);
     await openSchedules(scheduleDoctor);
   };
+
+  useEffect(() => {
+    if (!open || !form.departamento_id) {
+      if (open && !form.departamento_id) setEspecialidadesFiltradas(especialidades);
+      return;
+    }
+    api.get<Especialidad[]>(`/especialidades?departamento_id=${form.departamento_id}`)
+      .then(({ data }) => {
+        setEspecialidadesFiltradas(data.length ? data : especialidades);
+        if (!data.find(e => e.especialidad_id === form.especialidad_id)) {
+          setForm(prev => ({ ...prev, especialidad_id: 0 }));
+        }
+      })
+      .catch(() => setEspecialidadesFiltradas(especialidades));
+  }, [form.departamento_id, open]);
 
   const filtered = items.filter((item) =>
     `${item.nombre} ${item.apellido} ${item.especialidad} ${item.numero_colegiatura}`.toLowerCase().includes(search.toLowerCase())
@@ -167,9 +190,16 @@ export default function DoctoresPage() {
             <TextField label="Teléfono" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
             <TextField label="Contraseña inicial" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           </>}
-          <TextField label="Número de colegiatura" required value={form.numero_colegiatura} onChange={(e) => setForm({ ...form, numero_colegiatura: e.target.value })} />
+          <TextField label="Número de colegiatura" required value={form.numero_colegiatura}
+            onChange={(e) => setForm({ ...form, numero_colegiatura: e.target.value })}
+            slotProps={{
+              input: {
+                startAdornment: <InputAdornment position="start">CMP-</InputAdornment>,
+              },
+            }}
+          />
           <FormControl required><InputLabel>Especialidad</InputLabel><Select label="Especialidad" value={form.especialidad_id} onChange={(e) => setForm({ ...form, especialidad_id: Number(e.target.value) })}>
-            <MenuItem value={0} disabled>Seleccione</MenuItem>{especialidades.map((item) => <MenuItem key={item.especialidad_id} value={item.especialidad_id}>{item.nombre_especialidad}</MenuItem>)}
+            <MenuItem value={0} disabled>Seleccione</MenuItem>{especialidadesFiltradas.map((item) => <MenuItem key={item.especialidad_id} value={item.especialidad_id}>{item.nombre_especialidad}</MenuItem>)}
           </Select></FormControl>
           <FormControl required><InputLabel>Departamento</InputLabel><Select label="Departamento" value={form.departamento_id} onChange={(e) => setForm({ ...form, departamento_id: Number(e.target.value) })}>
             <MenuItem value={0} disabled>Seleccione</MenuItem>{departamentos.map((item) => <MenuItem key={item.departamento_id} value={item.departamento_id}>{item.nombre}</MenuItem>)}
