@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Avatar, Box, Container, Typography } from '@mui/material';
 import Autoplay from 'embla-carousel-autoplay';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -6,14 +6,28 @@ import { motion } from 'framer-motion';
 import { Quote } from 'lucide-react';
 import type { Review } from '../../types';
 
+const AVATAR_COLORS = ['#2563EB', '#0F4C81', '#10B981', '#8B5CF6', '#EC4899', '#F59E0B', '#EF4444'];
+
+function stringToColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 interface TestimonialsProps {
   reviews: Review[];
 }
 
 export default function Testimonials({ reviews }: TestimonialsProps) {
+  const autoplayPlugin = useMemo(
+    () => Autoplay({ delay: 5000, stopOnInteraction: false }),
+    [],
+  );
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: reviews.length > 1, align: 'center' },
-    [Autoplay({ delay: 5000, stopOnInteraction: false })],
+    [autoplayPlugin],
   );
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -54,7 +68,7 @@ export default function Testimonials({ reviews }: TestimonialsProps) {
             align="center"
             sx={{ color: '#64748b', mb: 6, maxWidth: 600, mx: 'auto' }}
           >
-            Medicos reales, resultados reales
+            Médicos reales, resultados reales
           </Typography>
         </motion.div>
 
@@ -82,9 +96,14 @@ export default function Testimonials({ reviews }: TestimonialsProps) {
                   <Avatar
                     src={review.avatar ?? undefined}
                     alt={review.name}
-                    sx={{ width: 72, height: 72, mx: 'auto', mb: 2, border: '3px solid #DBEAFE' }}
+                    sx={{
+                      width: 72, height: 72, mx: 'auto', mb: 2, border: '3px solid #DBEAFE',
+                      bgcolor: review.avatar ? undefined : stringToColor(review.name),
+                      fontSize: '1.5rem',
+                      fontWeight: 700,
+                    }}
                   >
-                    {review.name.slice(0, 1)}
+                    {review.name.slice(0, 1).toUpperCase()}
                   </Avatar>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A' }}>
                     {review.name}
@@ -103,12 +122,14 @@ export default function Testimonials({ reviews }: TestimonialsProps) {
             {reviews.map((_, idx) => (
               <Box
                 key={idx}
+                onClick={() => emblaApi?.scrollTo(idx)}
                 sx={{
                   width: selectedIndex === idx ? 24 : 8,
                   height: 8,
                   borderRadius: 4,
                   bgcolor: selectedIndex === idx ? '#2563EB' : '#CBD5E1',
                   transition: 'all 0.3s ease',
+                  cursor: 'pointer',
                 }}
               />
             ))}

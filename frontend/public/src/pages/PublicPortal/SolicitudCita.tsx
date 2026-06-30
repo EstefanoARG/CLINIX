@@ -39,8 +39,6 @@ interface LoaderState {
   cargandoSlots: boolean;
 }
 
-const DIAS_NOMBRES: Record<number, string> = {0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes',6:'Sábado'};
-
 const INITIAL_FORM: FormState = {
   nombres: '',
   apellidos: '',
@@ -69,7 +67,6 @@ export default function SolicitudCita() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [mensajeSlots, setMensajeSlots] = useState('');
-  const [diasAtencion, setDiasAtencion] = useState<string[]>([]);
   const [exito, setExito] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [terminosAbierto, setTerminosAbierto] = useState(false);
@@ -103,7 +100,6 @@ export default function SolicitudCita() {
     if (!form.medicoId) {
       setLoader(prev => ({ ...prev, slots: [], cargandoSlots: false }));
       setMensajeSlots('');
-      setDiasAtencion([]);
       return;
     }
     setLoader(prev => ({ ...prev, cargandoSlots: true }));
@@ -113,7 +109,6 @@ export default function SolicitudCita() {
       .then(({ data }) => {
         setLoader(prev => ({ ...prev, slots: data.slots, cargandoSlots: false }));
         setMensajeSlots(data.mensaje || '');
-        setDiasAtencion(data.dias_atencion || []);
       })
       .catch(() => { setError('Error al cargar horarios'); setLoader(prev => ({ ...prev, cargandoSlots: false })); });
   }, [form.medicoId, fecha]);
@@ -178,20 +173,26 @@ export default function SolicitudCita() {
     }
   };
 
+  const bgSx = {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 30%, #90CAF9 60%, #64B5F6 100%)',
+    position: 'relative',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      backgroundImage: `radial-gradient(circle at 1px 1px, rgba(21, 101, 192, 0.06) 1px, transparent 0)`,
+      backgroundSize: '40px 40px',
+      pointerEvents: 'none',
+    },
+  } as const;
+
   if (exito) {
     return (
-      <>
-        <Box sx={{ position: 'fixed', inset: 0,
-          background: 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 30%, #90CAF9 60%, #64B5F6 100%)',
-          '&::before': { content: '""', position: 'absolute', inset: 0,
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(21, 101, 192, 0.06) 1px, transparent 0)`,
-            backgroundSize: '40px 40px', pointerEvents: 'none',
-          }, zIndex: 0,
-        }} />
-        <Box sx={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          minHeight: '100vh', position: 'relative', zIndex: 1, p: 2,
-        }}>
+      <Box sx={bgSx}>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
           <Box sx={{
             borderRadius: 3, overflow: 'hidden', bgcolor: 'background.paper',
             boxShadow: '0 4px 24px rgba(21, 101, 192, 0.10)',
@@ -238,31 +239,17 @@ export default function SolicitudCita() {
             </Box>
           </Box>
         </Box>
-        <Box sx={{ position: 'fixed', bottom: 32, left: 0, right: 0, zIndex: 2 }}>
+        <Box sx={{ position: 'relative' }}>
           <PublicFooter />
         </Box>
-      </>
+      </Box>
     );
   }
 
   return (
-    <>
-      <Box sx={{
-        position: 'fixed',
-        inset: 0,
-        background: 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 30%, #90CAF9 60%, #64B5F6 100%)',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(21, 101, 192, 0.06) 1px, transparent 0)`,
-          backgroundSize: '40px 40px',
-          pointerEvents: 'none',
-        },
-        zIndex: 0,
-      }} />
+    <Box sx={bgSx}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box sx={{ maxWidth: 960, mx: 'auto', px: 2, py: 4, pb: 12, position: 'relative', zIndex: 1 }}>
+        <Box sx={{ flex: 1, maxWidth: 960, mx: 'auto', px: 2, py: 4, position: 'relative', zIndex: 1, width: '100%' }}>
 
         <Button
           onClick={() => navigate('/')}
@@ -546,9 +533,9 @@ export default function SolicitudCita() {
         </Box>
         </Box>
     </LocalizationProvider>
-        <Box sx={{ position: 'fixed', bottom: 32, left: 0, right: 0, zIndex: 2 }}>
+        <Box sx={{ position: 'relative' }}>
           <PublicFooter />
         </Box>
-    </>
+    </Box>
   );
 }

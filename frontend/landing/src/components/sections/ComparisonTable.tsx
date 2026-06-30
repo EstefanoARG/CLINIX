@@ -41,7 +41,7 @@ export default function ComparisonTable({ plans, rows }: ComparisonTableProps) {
           variant="h4"
           sx={{ textAlign: 'center', color: '#0F172A', fontWeight: 800, mb: 6, fontSize: { xs: '1.5rem', md: '2rem' } }}
         >
-          Compara las caracteristicas de nuestros planes
+          Compara las características de nuestros planes
         </Typography>
 
         <TableContainer
@@ -50,15 +50,15 @@ export default function ComparisonTable({ plans, rows }: ComparisonTableProps) {
             boxShadow: '0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 4px -1px rgba(0,0,0,0.04)',
             border: '1px solid #E2E8F0',
             borderRadius: '16px',
-            overflow: 'hidden',
+            overflow: 'auto',
           }}
         >
           <Table>
             <TableHead>
               <MuiTableRow sx={{ bgcolor: '#FFFFFF' }}>
-                <TableCell sx={{ width: '35%', fontWeight: 700, color: '#0F172A', py: 2.5, pl: 3 }}>
+                <TableCell sx={{ width: '35%', fontWeight: 700, color: '#0F172A', py: 2.5, pl: 3, position: 'sticky', left: 0, zIndex: 2, bgcolor: '#FFFFFF' }}>
                   <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 700, color: '#0F172A' }}>
-                    Comparativa de las caracteristicas
+                    Comparativa de las características
                   </Typography>
                 </TableCell>
                 {plans.map((plan) => (
@@ -85,7 +85,7 @@ export default function ComparisonTable({ plans, rows }: ComparisonTableProps) {
                 if (row.category) {
                   return (
                     <MuiTableRow key={`cat-${idx}`} sx={{ bgcolor: '#DBEAFE' }}>
-                      <TableCell colSpan={plans.length + 1} sx={{ py: 1.5 }}>
+                      <TableCell colSpan={plans.length + 1} sx={{ py: 1.5, position: 'sticky', left: 0, zIndex: 1, bgcolor: '#DBEAFE' }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1E40AF', fontSize: '0.9rem' }}>
                           {row.category}
                         </Typography>
@@ -96,7 +96,7 @@ export default function ComparisonTable({ plans, rows }: ComparisonTableProps) {
 
                 return (
                   <MuiTableRow key={`row-${idx}`} sx={{ '&:hover': { bgcolor: '#F1F5F9' }, transition: 'background-color 0.15s ease' }}>
-                    <TableCell sx={{ py: 2, pl: 3 }}>
+                    <TableCell sx={{ py: 2, pl: 3, position: 'sticky', left: 0, zIndex: 1, bgcolor: '#FFFFFF' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 500 }}>
                           {row.feature}
@@ -135,7 +135,7 @@ export default function ComparisonTable({ plans, rows }: ComparisonTableProps) {
               })}
 
               <MuiTableRow>
-                <TableCell sx={{ py: 2, pl: 3 }}>
+                <TableCell sx={{ py: 2, pl: 3, position: 'sticky', left: 0, zIndex: 1, bgcolor: '#FFFFFF' }}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -151,7 +151,7 @@ export default function ComparisonTable({ plans, rows }: ComparisonTableProps) {
                     label={
                       <Box>
                         <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600 }}>
-                          Pagina web profesional
+                          Página web profesional
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#64748B' }}>
                           S/55 por mes, con cargo anual

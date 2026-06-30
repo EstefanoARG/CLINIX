@@ -23,9 +23,9 @@ export default function App() {
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Inicio />} />
+              <Route path="/solicitar-cita" element={<SolicitudCita />} />
               <Route element={<PublicLayout />}>
                 <Route path="/medicos" element={<MedicosPage />} />
-                <Route path="/solicitar-cita" element={<SolicitudCita />} />
                 <Route path="/mis-reservas" element={<MisReservasPage />} />
               </Route>
               <Route path="/login" element={<LoginPage />} />

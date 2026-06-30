@@ -22,7 +22,7 @@ export default function FAQ({ items }: FAQProps) {
   if (items.length === 0) return null;
 
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', py: { xs: 8, md: 12 } }}>
+    <Box id="faq" sx={{ bgcolor: '#F8FAFC', py: { xs: 8, md: 12 }, scrollMarginTop: '80px' }}>
       <Container maxWidth="md">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

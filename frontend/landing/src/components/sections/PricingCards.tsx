@@ -34,7 +34,7 @@ export default function PricingCards({ plans }: PricingCardsProps) {
   if (plans.length === 0) return null;
 
   return (
-    <Box id="pricing" sx={{ bgcolor: '#F8FAFC', py: { xs: 6, md: 10 } }}>
+    <Box id="pricing" sx={{ bgcolor: '#F8FAFC', py: { xs: 6, md: 10 }, scrollMarginTop: '80px' }}>
       <Container maxWidth="lg">
         <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
           {plans.map((plan, idx) => {
@@ -49,49 +49,47 @@ export default function PricingCards({ plans }: PricingCardsProps) {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1, duration: 0.5 }}
                 >
-                  <Box sx={{ position: 'relative' }}>
-                    {plan.popular && (
-                      <Box
+                    <Box sx={{ position: 'relative' }}>
+                      {plan.popular && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -14,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: 'linear-gradient(135deg, #2563EB, #0F4C81)',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            px: 2.5,
+                            py: 0.6,
+                            borderRadius: '20px',
+                            zIndex: 2,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {plan.popularLabel ?? 'Más Popular'}
+                        </Box>
+                      )}
+
+                      <Card
                         sx={{
-                          position: 'absolute',
-                          top: -14,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          background: 'linear-gradient(135deg, #2563EB, #0F4C81)',
-                          color: 'white',
-                          fontWeight: 700,
-                          fontSize: '0.75rem',
-                          px: 2.5,
-                          py: 0.6,
-                          borderRadius: '20px',
-                          zIndex: 2,
-                          whiteSpace: 'nowrap',
+                          borderRadius: '24px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: plan.popular
+                            ? '0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06)'
+                            : '0 2px 16px rgba(0,0,0,0.06)',
+                          border: plan.popular ? '2px solid #2563EB' : '1px solid #E2E8F0',
+                          maxWidth: 360,
+                          mx: 'auto',
+                          '&:hover': {
+                            transform: 'translateY(-6px)',
+                            boxShadow: plan.popular
+                              ? '0 16px 48px rgba(37,99,235,0.18)'
+                              : '0 12px 40px rgba(0,0,0,0.1)',
+                          },
                         }}
                       >
-                        {plan.popularLabel ?? 'Mas Popular'}
-                      </Box>
-                    )}
-
-                    <Card
-                      sx={{
-                        borderRadius: '24px',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: plan.popular
-                          ? '0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06)'
-                          : '0 2px 16px rgba(0,0,0,0.06)',
-                        border: plan.popular ? '2px solid #2563EB' : '1px solid #E2E8F0',
-                        maxWidth: 360,
-                        mx: 'auto',
-                        position: 'relative',
-                        transform: plan.popular ? 'scale(1.05)' : 'none',
-                        '&:hover': {
-                          transform: plan.popular ? 'scale(1.05) translateY(-6px)' : 'translateY(-6px)',
-                          boxShadow: plan.popular
-                            ? '0 16px 48px rgba(37,99,235,0.18)'
-                            : '0 12px 40px rgba(0,0,0,0.1)',
-                        },
-                      }}
-                    >
                       <CardContent sx={{ p: 3.5 }}>
                         <Box sx={{ textAlign: 'center', mb: 2 }}>
                           <Box
@@ -154,7 +152,7 @@ export default function PricingCards({ plans }: PricingCardsProps) {
                             label={
                               <Box>
                                 <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600 }}>
-                                  Pagina web profesional
+                                  Página web profesional
                                 </Typography>
                                 <Typography variant="caption" sx={{ color: '#64748B' }}>
                                   S/55 por mes, con cargo anual

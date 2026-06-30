@@ -71,7 +71,9 @@ export default function Footer() {
             <Box sx={{ display: 'flex', gap: 1.5, mt: 3 }}>
               <Box
                 component="a"
-                href="#"
+                href="https://www.facebook.com/clinixperu"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   width: 36,
                   height: 36,
@@ -89,7 +91,9 @@ export default function Footer() {
               </Box>
               <Box
                 component="a"
-                href="#"
+                href="https://twitter.com/clinixperu"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   width: 36,
                   height: 36,
@@ -107,7 +111,9 @@ export default function Footer() {
               </Box>
               <Box
                 component="a"
-                href="#"
+                href="https://www.linkedin.com/company/clinixperu"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   width: 36,
                   height: 36,
@@ -125,7 +131,9 @@ export default function Footer() {
               </Box>
               <Box
                 component="a"
-                href="#"
+                href="https://www.youtube.com/@clinixperu"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   width: 36,
                   height: 36,
@@ -238,7 +246,7 @@ export default function Footer() {
             variant="caption"
             sx={{ color: '#64748B', display: 'block', fontFamily: 'Inter, sans-serif' }}
           >
-            clinix.pe © 2026 - ¡Agenda tu consulta online!
+            clinix.pe © {new Date().getFullYear()} - ¡Agenda tu consulta online!
           </Typography>
           <Typography
             variant="caption"

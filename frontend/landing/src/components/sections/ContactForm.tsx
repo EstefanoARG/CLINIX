@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { FormEvent } from 'react';
 import {
   Alert,
@@ -15,55 +14,31 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
-import { submitLandingContact } from '../../services/landingApi';
-import type { LandingContactPayload } from '../../types';
+import { useContactForm } from '../../hooks/useContactForm';
 
 const implementationAreas = [
   { value: 'private', label: 'En mi propio consultorio' },
-  { value: 'clinic', label: 'En una clinica / centro de salud / hospital' },
-  { value: 'lab', label: 'En centro de diagnostico / laboratorio' },
+  { value: 'clinic', label: 'En una clínica / centro de salud / hospital' },
+  { value: 'lab', label: 'En centro de diagnóstico / laboratorio' },
   { value: 'agency', label: 'Para mis clientes, represento a una agencia' },
   { value: 'partnership', label: 'Busco una alianza con CLINIX' },
   { value: 'patient', label: 'Soy un paciente que quiere reservar una cita' },
   { value: 'other', label: 'Otro' },
 ];
 
-const initialForm: LandingContactPayload = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  contactSchedule: '',
-  implementationArea: '',
-  acceptsMarketing: true,
-};
-
 export default function ContactForm() {
-  const [form, setForm] = useState<LandingContactPayload>(initialForm);
-  const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const {
+    form, errors, submitting, cooldown, status,
+    updateField, handleSubmit,
+  } = useContactForm();
 
-  const updateField = (field: keyof LandingContactPayload, value: string | boolean) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitting(true);
-    setStatus('idle');
-    try {
-      await submitLandingContact(form);
-      setForm(initialForm);
-      setStatus('success');
-    } catch {
-      setStatus('error');
-    } finally {
-      setSubmitting(false);
-    }
+    await handleSubmit();
   };
 
   return (
-    <Box id="contact" sx={{ bgcolor: '#0F172A', py: { xs: 6, md: 10 }, px: { xs: 2, md: 0 } }}>
+    <Box id="contact" sx={{ bgcolor: '#0F172A', py: { xs: 6, md: 10 }, px: { xs: 2, md: 0 }, scrollMarginTop: '80px' }}>
       <Container maxWidth="sm">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -73,7 +48,7 @@ export default function ContactForm() {
         >
           <Box
             component="form"
-            onSubmit={handleSubmit}
+            onSubmit={onSubmit}
             sx={{
               bgcolor: '#FFFFFF',
               borderRadius: '16px',
@@ -96,11 +71,11 @@ export default function ContactForm() {
                 <MessageCircle size={20} color="#2563EB" />
               </Box>
               <Typography variant="h4" sx={{ color: '#0F172A', fontWeight: 800, fontSize: { xs: '1.5rem', md: '1.75rem' } }}>
-                Aun tienes dudas?
+                ¿Aún tienes dudas?
               </Typography>
             </Box>
             <Typography variant="body1" sx={{ color: '#64748B', mb: 4, ml: { xs: 0, sm: 7 }, fontSize: '1rem' }}>
-              Permitenos resolverlas y ofrecerte una demostracion gratuita de nuestra solucion.
+              Permítenos resolverlas y ofrecerte una demostración gratuita de nuestra solución.
             </Typography>
 
             {status === 'success' && (
@@ -110,7 +85,7 @@ export default function ContactForm() {
             )}
             {status === 'error' && (
               <Alert severity="error" sx={{ mb: 3 }}>
-                No se pudo enviar la solicitud. Intentalo nuevamente.
+                No se pudo enviar la solicitud.                 Inténtalo nuevamente.
               </Alert>
             )}
 
@@ -121,6 +96,8 @@ export default function ContactForm() {
                   label="Nombre(s)"
                   required
                   value={form.firstName}
+                  error={Boolean(errors.firstName)}
+                  helperText={errors.firstName}
                   onChange={(event) => updateField('firstName', event.target.value)}
                 />
               </Grid>
@@ -130,26 +107,32 @@ export default function ContactForm() {
                   label="Apellidos"
                   required
                   value={form.lastName}
+                  error={Boolean(errors.lastName)}
+                  helperText={errors.lastName}
                   onChange={(event) => updateField('lastName', event.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
-                  label="Correo electronico"
+                  label="Correo electrónico"
                   required
                   type="email"
                   value={form.email}
+                  error={Boolean(errors.email)}
+                  helperText={errors.email}
                   onChange={(event) => updateField('email', event.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
-                  label="Numero de telefono celular"
+                  label="Número de teléfono celular"
                   required
-                  placeholder="Por favor, inserte un numero de contacto"
+                  placeholder="Por favor, inserte un número de contacto"
                   value={form.phone}
+                  error={Boolean(errors.phone)}
+                  helperText={errors.phone}
                   onChange={(event) => updateField('phone', event.target.value)}
                 />
               </Grid>
@@ -165,9 +148,11 @@ export default function ContactForm() {
                 <TextField
                   fullWidth
                   select
-                  label="En donde necesitas implementar la solucion?"
+                  label="¿En dónde necesitas implementar la solución?"
                   required
                   value={form.implementationArea}
+                  error={Boolean(errors.implementationArea)}
+                  helperText={errors.implementationArea}
                   onChange={(event) => updateField('implementationArea', event.target.value)}
                 >
                   <MenuItem value="" disabled>
@@ -192,7 +177,7 @@ export default function ContactForm() {
               }
               label={
                 <Typography variant="caption" sx={{ display: 'block', color: '#64748B', lineHeight: 1.5 }}>
-                  Acepto recibir informacion de CLINIX Peru por correo electronico y WhatsApp.
+                  Acepto recibir información de CLINIX Perú por correo electrónico y WhatsApp.
                 </Typography>
               }
             />
@@ -202,17 +187,19 @@ export default function ContactForm() {
               type="submit"
               variant="contained"
               size="large"
-              disabled={submitting}
+              disabled={submitting || cooldown}
               sx={{
                 mt: 3,
-                background: 'linear-gradient(135deg, #2563EB 0%, #0F4C81 100%)',
+                background: submitting || cooldown
+                  ? 'linear-gradient(135deg, #94A3B8 0%, #64748B 100%)'
+                  : 'linear-gradient(135deg, #2563EB 0%, #0F4C81 100%)',
                 py: 1.8,
                 borderRadius: '12px',
                 fontWeight: 600,
                 fontSize: '1rem',
                 textTransform: 'none',
-                boxShadow: '0 8px 24px -4px rgba(37,99,235,0.35)',
-                '&:hover': {
+                boxShadow: submitting || cooldown ? 'none' : '0 8px 24px -4px rgba(37,99,235,0.35)',
+                '&:hover': submitting || cooldown ? {} : {
                   background: 'linear-gradient(135deg, #1d4ed8 0%, #0a3b6a 100%)',
                   boxShadow: '0 12px 32px -4px rgba(37,99,235,0.45)',
                   transform: 'translateY(-1px)',
@@ -220,7 +207,13 @@ export default function ContactForm() {
                 transition: 'all 0.2s ease',
               }}
             >
-              {submitting ? <CircularProgress size={24} color="inherit" /> : 'Enviar'}
+              {submitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : cooldown ? (
+                'Espere 30 segundos...'
+              ) : (
+                'Enviar'
+              )}
             </Button>
           </Box>
         </motion.div>
