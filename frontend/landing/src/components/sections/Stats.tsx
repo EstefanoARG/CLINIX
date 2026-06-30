@@ -1,19 +1,29 @@
+import { useRef } from 'react';
+import type { ElementType } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { motion, useInView } from 'framer-motion';
 import CountUp from 'react-countup';
-import { Building2, Users, ShieldCheck, Headphones } from 'lucide-react';
-import { useRef } from 'react';
+import { Building2, Headphones, ShieldCheck, Users } from 'lucide-react';
+import type { LandingMetric } from '../../types';
 
-const stats = [
-  { icon: Building2, value: 250, suffix: '+', label: 'Clínicas' },
-  { icon: Users, value: 40000, suffix: '+', label: 'Pacientes' },
-  { icon: ShieldCheck, value: 99.9, suffix: '%', label: 'Disponibilidad' },
-  { icon: Headphones, value: 24, suffix: '/7 Soporte', label: '' },
-];
+const metricIcons: Record<string, ElementType> = {
+  building: Building2,
+  clinics: Building2,
+  users: Users,
+  patients: Users,
+  shield: ShieldCheck,
+  headphones: Headphones,
+};
 
-export default function Stats() {
+interface StatsProps {
+  metrics: LandingMetric[];
+}
+
+export default function Stats({ metrics }: StatsProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+
+  if (metrics.length === 0) return null;
 
   return (
     <Box sx={{ bgcolor: '#ffffff', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', py: { xs: 6, md: 10 } }}>
@@ -22,15 +32,15 @@ export default function Stats() {
           ref={ref}
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
+            gridTemplateColumns: { xs: '1fr 1fr', md: `repeat(${Math.min(metrics.length, 4)}, 1fr)` },
             gap: { xs: 3, md: 6 },
           }}
         >
-          {stats.map((stat, idx) => {
-            const Icon = stat.icon;
+          {metrics.map((metric, idx) => {
+            const Icon = metricIcons[metric.icon] ?? ShieldCheck;
             return (
               <motion.div
-                key={idx}
+                key={metric.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -74,23 +84,16 @@ export default function Stats() {
                   >
                     {isInView && (
                       <CountUp
-                        end={stat.value}
+                        end={metric.value}
                         duration={2}
-                        decimals={stat.value % 1 !== 0 ? 1 : 0}
-                        suffix={stat.suffix}
+                        decimals={metric.value % 1 !== 0 ? 1 : 0}
+                        suffix={metric.suffix}
                       />
                     )}
-                    {!isInView && (
-                      <span>0{stat.suffix}</span>
-                    )}
                   </Typography>
-
-                  {stat.label && (
-                    <Typography
-                      variant="body1"
-                      sx={{ color: '#64748b', fontWeight: 500, mt: 0.5, fontSize: '0.95rem' }}
-                    >
-                      {stat.label}
+                  {metric.label && (
+                    <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5, fontWeight: 500 }}>
+                      {metric.label}
                     </Typography>
                   )}
                 </Box>

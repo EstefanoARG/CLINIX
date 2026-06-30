@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from sqlalchemy import (
     Column, Integer, String, Text, DateTime, Date, Time, Boolean, ForeignKey,
-    UniqueConstraint, CheckConstraint, text
+    UniqueConstraint, CheckConstraint, Numeric, Unicode, UnicodeText, text
 )
 from sqlalchemy.orm import relationship
 
@@ -407,3 +407,110 @@ class DocumentoAdjunto(Base):
     __table_args__ = (
         CheckConstraint("TipoArchivo IN ('PDF', 'JPEG', 'PNG', 'DICOM', 'DOC', 'XLSX', 'Otro')", name="CK_DOCUMENTO_TIPO"),
     )
+
+
+class LandingPlan(Base):
+    __tablename__ = "LANDING_PLAN"
+
+    PlanID = Column(Integer, primary_key=True, autoincrement=True)
+    Slug = Column(String(50), nullable=False, unique=True)
+    Nombre = Column(Unicode(80), nullable=False)
+    Descripcion = Column(UnicodeText, nullable=False)
+    Precio = Column(Numeric(10, 2), nullable=False)
+    PrecioConWeb = Column(Numeric(10, 2), nullable=False)
+    Periodo = Column(Unicode(120), nullable=False)
+    ColorAcento = Column(String(20), nullable=False)
+    Icono = Column(String(50), nullable=False, default="star", server_default=text("'star'"))
+    IntroBeneficios = Column(Unicode(160), nullable=True)
+    Popular = Column(Boolean, nullable=False, default=False, server_default=text("0"))
+    EtiquetaPopular = Column(Unicode(60), nullable=True)
+    TextoBoton = Column(Unicode(80), nullable=False, default="Elegir plan", server_default=text("'Elegir plan'"))
+    EnlaceBoton = Column(String(200), nullable=False, default="#contact", server_default=text("'#contact'"))
+    Orden = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
+
+    features = relationship(
+        "LandingPlanFeature",
+        back_populates="plan",
+        cascade="all, delete-orphan",
+        order_by="LandingPlanFeature.Orden",
+    )
+
+
+class LandingPlanFeature(Base):
+    __tablename__ = "LANDING_PLAN_FEATURE"
+
+    FeatureID = Column(Integer, primary_key=True, autoincrement=True)
+    PlanID = Column(Integer, ForeignKey("LANDING_PLAN.PlanID"), nullable=False)
+    Texto = Column(Unicode(220), nullable=False)
+    Tooltip = Column(UnicodeText, nullable=True)
+    Orden = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+
+    plan = relationship("LandingPlan", back_populates="features")
+
+
+class LandingMetric(Base):
+    __tablename__ = "LANDING_METRIC"
+
+    MetricID = Column(Integer, primary_key=True, autoincrement=True)
+    Slug = Column(String(50), nullable=False, unique=True)
+    Icono = Column(String(50), nullable=False)
+    Etiqueta = Column(Unicode(80), nullable=False)
+    Valor = Column(Numeric(12, 2), nullable=False, default=0, server_default=text("0"))
+    Sufijo = Column(Unicode(40), nullable=False, default="", server_default=text("''"))
+    Fuente = Column(String(50), nullable=False, default="manual", server_default=text("'manual'"))
+    Orden = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+
+
+class LandingTestimonial(Base):
+    __tablename__ = "LANDING_TESTIMONIAL"
+
+    TestimonialID = Column(Integer, primary_key=True, autoincrement=True)
+    Nombre = Column(Unicode(120), nullable=False)
+    Especialidad = Column(Unicode(100), nullable=False)
+    Ubicacion = Column(Unicode(100), nullable=False)
+    AvatarURL = Column(String(500), nullable=True)
+    Texto = Column(UnicodeText, nullable=False)
+    Orden = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))
+
+
+class LandingFAQ(Base):
+    __tablename__ = "LANDING_FAQ"
+
+    FAQID = Column(Integer, primary_key=True, autoincrement=True)
+    Pregunta = Column(Unicode(240), nullable=False)
+    Respuesta = Column(UnicodeText, nullable=False)
+    Orden = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+
+
+class LandingComparisonRow(Base):
+    __tablename__ = "LANDING_COMPARISON_ROW"
+
+    RowID = Column(Integer, primary_key=True, autoincrement=True)
+    Categoria = Column(Unicode(120), nullable=True)
+    Caracteristica = Column(Unicode(180), nullable=True)
+    Tooltip = Column(UnicodeText, nullable=True)
+    ValoresJSON = Column(UnicodeText, nullable=False)
+    Orden = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    Activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+
+
+class LandingLead(Base):
+    __tablename__ = "LANDING_LEAD"
+
+    LeadID = Column(Integer, primary_key=True, autoincrement=True)
+    Nombres = Column(Unicode(120), nullable=False)
+    Apellidos = Column(Unicode(120), nullable=False)
+    Email = Column(String(120), nullable=False)
+    Telefono = Column(String(30), nullable=False)
+    HorarioContacto = Column(Unicode(120), nullable=True)
+    AreaImplementacion = Column(Unicode(160), nullable=False)
+    AceptaMarketing = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    Estado = Column(String(30), nullable=False, default="Nuevo", server_default=text("'Nuevo'"))
+    FechaCreacion = Column(DateTime, nullable=False, default=datetime.now, server_default=text("CURRENT_TIMESTAMP"))

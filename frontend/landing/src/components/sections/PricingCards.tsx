@@ -1,99 +1,45 @@
 import { useState } from 'react';
+import type { ElementType } from 'react';
 import {
   Box,
-  Container,
-  Grid,
+  Button,
   Card,
   CardContent,
-  Typography,
-  Button,
-  Switch,
+  Container,
   FormControlLabel,
+  Grid,
+  Switch,
+  Typography,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Star, Zap, Crown, Check, Info } from 'lucide-react';
+import { Check, Crown, Info, Star, Zap } from 'lucide-react';
+import type { PricingPlan } from '../../types';
 
-interface PlanFeature {
-  text: string;
-  tooltip: string;
-}
-
-interface Plan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  hiddenPrice: number;
-  period: string;
-  accentColor: string;
-  features: PlanFeature[];
-  popular?: boolean;
-  popularLabel?: string;
-}
-
-const plans: Plan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    description: 'Digitalízate y gana visibilidad con reservas en línea y recordatorios de visitas.',
-    price: 199.17,
-    hiddenPrice: 254.17,
-    period: 'Al mes, con cargo anual',
-    accentColor: '#D85F99',
-    features: [
-      { text: 'Calendario para consulta en línea', tooltip: 'Permite que tus pacientes reserven consultas en línea en un calendario especializado.' },
-      { text: 'Recordatorios de visitas por correo electrónico y notificaciones push', tooltip: 'Reduce las ausencias con recordatorios automáticos.' },
-      { text: 'Campañas de SMS', tooltip: 'Mantente en contacto con tus pacientes.' },
-    ],
-  },
-  {
-    id: 'plus',
-    name: 'Plus',
-    description: 'Ofrece una excelente experiencia a tus pacientes y haz más eficiente tu práctica.',
-    price: 249.17,
-    hiddenPrice: 304.17,
-    period: 'Al mes, con cargo anual',
-    accentColor: '#1662C6',
-    popular: true,
-    popularLabel: 'MOST POPULAR',
-    features: [
-      { text: 'Episodios clínicos', tooltip: 'Recopila toda la información de tus pacientes.' },
-      { text: 'Recordatorios de visitas mediante SMS', tooltip: 'Reduce las ausencias con recordatorios automáticos vía SMS.' },
-      { text: 'Consulta en línea', tooltip: 'Videoconsulta segura con tus pacientes.' },
-    ],
-  },
-  {
-    id: 'vip',
-    name: 'VIP',
-    description: 'Impulsa tu éxito con las mejores herramientas para ti y tus pacientes.',
-    price: 299.17,
-    hiddenPrice: 354.17,
-    period: 'Al mes, con cargo anual',
-    accentColor: '#F9A83E',
-    features: [
-      { text: 'Diseño de tu perfil', tooltip: 'Perfil público optimizado para destacar.' },
-      { text: 'Lista de espera', tooltip: 'Notifica a tus pacientes si se libera un espacio.' },
-      { text: 'Envíos masivos', tooltip: 'Cancela citas y envía mensajes masivos.' },
-    ],
-  },
-];
-
-const planIcons: Record<string, React.ElementType> = {
+const planIcons: Record<string, ElementType> = {
+  star: Star,
+  zap: Zap,
+  crown: Crown,
   starter: Star,
   plus: Zap,
   vip: Crown,
 };
 
-export default function PricingCards() {
+interface PricingCardsProps {
+  plans: PricingPlan[];
+}
+
+export default function PricingCards({ plans }: PricingCardsProps) {
   const [webEnabled, setWebEnabled] = useState(false);
 
+  if (plans.length === 0) return null;
+
   return (
-    <Box sx={{ bgcolor: '#F8FAFC', py: { xs: 6, md: 10 } }}>
+    <Box id="pricing" sx={{ bgcolor: '#F8FAFC', py: { xs: 6, md: 10 } }}>
       <Container maxWidth="lg">
         <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
           {plans.map((plan, idx) => {
             const currentPrice = webEnabled ? plan.hiddenPrice : plan.price;
-            const PlanIcon = planIcons[plan.id];
+            const PlanIcon = planIcons[plan.icon] ?? planIcons[plan.id] ?? Star;
 
             return (
               <Grid key={plan.id} size={{ xs: 12, md: 4 }}>
@@ -120,12 +66,12 @@ export default function PricingCards() {
                           borderRadius: '20px',
                           zIndex: 2,
                           whiteSpace: 'nowrap',
-                          letterSpacing: '0.03em',
                         }}
                       >
-                        Más Popular
+                        {plan.popularLabel ?? 'Mas Popular'}
                       </Box>
                     )}
+
                     <Card
                       sx={{
                         borderRadius: '24px',
@@ -139,9 +85,7 @@ export default function PricingCards() {
                         position: 'relative',
                         transform: plan.popular ? 'scale(1.05)' : 'none',
                         '&:hover': {
-                          transform: plan.popular
-                            ? 'scale(1.05) translateY(-6px)'
-                            : 'translateY(-6px)',
+                          transform: plan.popular ? 'scale(1.05) translateY(-6px)' : 'translateY(-6px)',
                           boxShadow: plan.popular
                             ? '0 16px 48px rgba(37,99,235,0.18)'
                             : '0 12px 40px rgba(0,0,0,0.1)',
@@ -165,23 +109,14 @@ export default function PricingCards() {
                           >
                             <PlanIcon size={26} color={plan.accentColor} />
                           </Box>
-                          <Typography
-                            variant="h5"
-                            sx={{ color: '#0F172A', fontWeight: 700 }}
-                          >
+                          <Typography variant="h5" sx={{ color: '#0F172A', fontWeight: 700 }}>
                             {plan.name}
                           </Typography>
                         </Box>
 
                         <Typography
                           variant="body2"
-                          sx={{
-                            textAlign: 'center',
-                            mb: 3,
-                            px: 1,
-                            lineHeight: 1.5,
-                            color: '#64748B',
-                          }}
+                          sx={{ textAlign: 'center', mb: 3, px: 1, lineHeight: 1.5, color: '#64748B' }}
                         >
                           {plan.description}
                         </Typography>
@@ -198,44 +133,28 @@ export default function PricingCards() {
                           >
                             S/ {currentPrice.toFixed(2)}
                           </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ display: 'block', color: '#64748B', mt: 0.3 }}
-                          >
+                          <Typography variant="caption" sx={{ display: 'block', color: '#64748B', mt: 0.3 }}>
                             {plan.period}
                           </Typography>
                         </Box>
 
-                        <Box
-                          sx={{
-                            bgcolor: '#F8FAFC',
-                            borderRadius: '12px',
-                            p: 1.5,
-                            mb: 2.5,
-                          }}
-                        >
+                        <Box sx={{ bgcolor: '#F8FAFC', borderRadius: '12px', p: 1.5, mb: 2.5 }}>
                           <FormControlLabel
                             control={
                               <Switch
                                 checked={webEnabled}
-                                onChange={() => setWebEnabled(!webEnabled)}
+                                onChange={() => setWebEnabled((value) => !value)}
                                 sx={{
-                                  '& .MuiSwitch-switchBase.Mui-checked': {
-                                    color: '#2563EB',
-                                  },
-                                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                    bgcolor: '#93C5FD',
-                                  },
-                                  '& .MuiSwitch-track': {
-                                    bgcolor: '#E2E8F0',
-                                  },
+                                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#2563EB' },
+                                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#93C5FD' },
+                                  '& .MuiSwitch-track': { bgcolor: '#E2E8F0' },
                                 }}
                               />
                             }
                             label={
                               <Box>
                                 <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 600 }}>
-                                  Página web profesional
+                                  Pagina web profesional
                                 </Typography>
                                 <Typography variant="caption" sx={{ color: '#64748B' }}>
                                   S/55 por mes, con cargo anual
@@ -249,7 +168,7 @@ export default function PricingCards() {
                         <Button
                           fullWidth
                           variant={plan.popular ? 'contained' : 'outlined'}
-                          href="#"
+                          href={plan.buttonHref ?? '#contact'}
                           sx={{
                             mb: 2.5,
                             py: 1.3,
@@ -279,7 +198,7 @@ export default function PricingCards() {
                                 }),
                           }}
                         >
-                          Elegir plan
+                          {plan.buttonText ?? 'Elegir plan'}
                         </Button>
 
                         <Typography
@@ -292,11 +211,7 @@ export default function PricingCards() {
                             letterSpacing: '0.02em',
                           }}
                         >
-                          {plan.id === 'starter'
-                            ? 'Todo lo del perfil gratuito y:'
-                            : plan.id === 'plus'
-                              ? 'Todos los beneficios del plan Starter y:'
-                              : 'Todos los beneficios del plan Plus y:'}
+                          {plan.benefitsIntro ?? 'Beneficios incluidos:'}
                         </Typography>
 
                         {plan.features.map((feature) => (
@@ -323,19 +238,21 @@ export default function PricingCards() {
                               <Typography variant="body2" sx={{ color: '#0F172A', fontWeight: 500 }}>
                                 {feature.text}
                               </Typography>
-                              <Box
-                                component="span"
-                                sx={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  cursor: 'pointer',
-                                  color: '#94A3B8',
-                                  '&:hover': { color: '#2563EB' },
-                                }}
-                                title={feature.tooltip}
-                              >
-                                <Info size={14} />
-                              </Box>
+                              {feature.tooltip && (
+                                <Box
+                                  component="span"
+                                  sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    color: '#94A3B8',
+                                    '&:hover': { color: '#2563EB' },
+                                  }}
+                                  title={feature.tooltip}
+                                >
+                                  <Info size={14} />
+                                </Box>
+                              )}
                             </Box>
                           </Box>
                         ))}

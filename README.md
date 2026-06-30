@@ -20,6 +20,7 @@ Sistema de gestión hospitalaria con **portal público** para pacientes (solicit
 | **Validación** | Pydantic + pydantic-settings | 2.x |
 | **Autenticación** | python-jose (JWT) + passlib (bcrypt) | — |
 | **Base de datos** | SQL Server vía pyodbc | ODBC 17+ |
+| **Landing Comercial** | React 18 + TypeScript + Vite, MUI 5 | puerto 3000 |
 | **Frontend Admin** | React 18 + TypeScript + Vite, MUI 5 | puerto 5175 |
 | **Frontend Público** | React 18 + TypeScript + Vite, MUI 5 | puerto 5174 |
 | **Documentación API** | Swagger UI (OpenAPI) | `/docs` |
@@ -72,10 +73,15 @@ backend/
 
 Cada módulo sigue la estructura: `router.py` → `service.py` → `schemas.py`.
 
-### Frontend — Dos SPAs Independientes
+### Frontend — Tres SPAs Independientes
 
 ```
 frontend/
+├── landing/                        # Landing comercial (Vite, puerto 3000)
+│   └── src/
+│       ├── services/landingApi.ts   # Axios contra /api/v1/public/landing
+│       ├── components/sections/     # Planes, métricas, FAQ, testimonios, contacto
+│       └── pages/HomePage.tsx
 ├── admin/                          # Portal Administrativo (Vite, puerto 5175)
 │   └── src/
 │       ├── App.tsx                 # Routes
@@ -203,6 +209,28 @@ Métricas agregadas y actividades recientes.
 
 ---
 
+### 7. Landing Comercial (`/api/v1/public/landing`)
+
+El landing de ventas ya no usa datos escritos directamente en React. Ahora consume contenido desde SQL Server:
+
+| Recurso | Origen |
+|---------|--------|
+| Planes, precios y beneficios | `LANDING_PLAN`, `LANDING_PLAN_FEATURE` |
+| Métricas comerciales | `LANDING_METRIC` + conteos reales de `CLINICA` y `PACIENTE` |
+| Testimonios | `LANDING_TESTIMONIAL` |
+| Preguntas frecuentes | `LANDING_FAQ` |
+| Tabla comparativa | `LANDING_COMPARISON_ROW` |
+| Formulario de contacto | `LANDING_LEAD` |
+
+Endpoints públicos:
+
+| Endpoint | Método | Auth | Descripción |
+|----------|--------|------|-------------|
+| `/api/v1/public/landing` | GET | No | Devuelve todo el contenido del landing |
+| `/api/v1/public/landing/contact` | POST | No | Guarda un lead del formulario en SQL Server |
+
+---
+
 ## Base de Datos
 
 ### Tablas principales
@@ -225,6 +253,12 @@ Métricas agregadas y actividades recientes.
 | `HISTORIA_CLINICA` | Registros de atención |
 | `DOCUMENTO_ADJUNTO` | Archivos adjuntos |
 | `LOG_AUDITORIA` | Auditoría de acciones |
+| `LANDING_PLAN` / `LANDING_PLAN_FEATURE` | Planes, precios y beneficios del landing |
+| `LANDING_METRIC` | Métricas comerciales del landing |
+| `LANDING_TESTIMONIAL` | Testimonios publicados |
+| `LANDING_FAQ` | Preguntas frecuentes |
+| `LANDING_COMPARISON_ROW` | Filas de la tabla comparativa |
+| `LANDING_LEAD` | Leads recibidos desde el formulario del landing |
 
 ### Vistas del Dashboard
 
@@ -232,14 +266,20 @@ Métricas agregadas y actividades recientes.
 
 ### Seed Data
 
-En desarrollo se usa SQLite por defecto. Al iniciar el backend por primera vez, SQLAlchemy crea
-`backend/clinix.db` y carga automáticamente `database/seed_data.sql`: 3 clínicas,
-10 especialidades, 22 médicos, 4 enfermeros, 10 pacientes, reservas, citas,
-admisiones, historias clínicas y auditoría. Los placeholders de contraseña se
-reemplazan por hashes bcrypt funcionales.
+El entorno local actual usa SQL Server Express (`localhost\SQLEXPRESS`) mediante `pyodbc`.
+La conexión se configura en `backend/.env` con `DATABASE_URL`.
 
-SQL Server sigue soportado configurando `DATABASE_URL`; para una instalación manual
-se conservan `database/init.sql` y `database/seed_data.sql`.
+Al iniciar el backend, SQLAlchemy crea las tablas que falten y el seed asegura datos mínimos. Para la BD `Clinix` actual se verificó:
+
+- 3 clínicas reales de prueba en `CLINICA`
+- 10 pacientes en `PACIENTE`
+- 3 planes del landing en `LANDING_PLAN`
+- 4 métricas en `LANDING_METRIC`
+- 3 testimonios en `LANDING_TESTIMONIAL`
+- 6 FAQs en `LANDING_FAQ`
+- 14 filas de comparativa en `LANDING_COMPARISON_ROW`
+
+Las métricas de clínicas y pacientes del landing se calculan desde las tablas operativas reales (`CLINICA` y `PACIENTE`). Los textos comerciales se guardan en tablas `LANDING_*` para que no dependan del código frontend.
 
 ### Migraciones
 
@@ -249,12 +289,14 @@ en `backend/database/`:
 | Script | Descripción |
 |--------|-------------|
 | `migration_001_cie10.sql` | Agrega tabla `CIE10_DIAGNOSTICO` y sus ~170 códigos de MINSA Perú por especialidad |
+| `migration_002_landing.sql` | Agrega tablas `LANDING_*` para contenido del landing y formulario de leads |
 
 Cada migración es **idempotente** (`IF NOT EXISTS` / `CREATE TABLE IF NOT EXISTS`) y puede
 ejecutarse contra BD con datos sin riesgo de pérdida:
 
 ```sql
-sqlcmd -S localhost -d Clinix -i backend/database/migration_001_cie10.sql
+sqlcmd -S localhost\SQLEXPRESS -d Clinix -i backend/database/migration_001_cie10.sql
+sqlcmd -S localhost\SQLEXPRESS -d Clinix -i backend/database/migration_002_landing.sql
 ```
 
 ---
@@ -279,9 +321,8 @@ sqlcmd -S localhost -d Clinix -i backend/database/migration_001_cie10.sql
 - Python 3.11 o 3.12
 - Node.js ≥ 18
 - PowerShell 5+ en Windows
-
-SQL Server es opcional. Para desarrollo local no hace falta instalar ningún servidor
-de base de datos.
+- SQL Server Express en `localhost\SQLEXPRESS`
+- ODBC Driver 17 for SQL Server
 
 ### Instalación automática en Windows
 
@@ -290,8 +331,22 @@ de base de datos.
 .\run-dev.ps1
 ```
 
+El script `run-dev.ps1` levanta backend, portal público y portal administrativo. Para levantar también el landing:
+
+```powershell
+cd frontend/landing
+npm run dev
+```
+
+Comando de una sola línea para abrir todo:
+
+```powershell
+$base="C:\Users\andre\OneDrive\Documentos\GitHub\CLINIX"; code $base; Start-Process powershell -ArgumentList "-NoExit","-ExecutionPolicy","Bypass","-Command","cd '$base'; .\run-dev.ps1"; Start-Process powershell -ArgumentList "-NoExit","-Command","cd '$base\frontend\landing'; npm run dev"
+```
+
 Servicios:
 
+- Landing comercial: `http://localhost:3000`
 - Portal público: `http://localhost:5174`
 - Portal administrativo: `http://localhost:5175`
 - API: `http://localhost:8000`
@@ -316,10 +371,25 @@ npm run dev
 cd frontend/public
 npm ci
 npm run dev
+
+cd frontend/landing
+npm ci
+npm run dev
 ```
 
 Las variables disponibles están documentadas en los archivos `.env.example` de cada
 aplicación. `VITE_API_URL` permite cambiar la URL de la API.
+
+### Configuración SQL Server
+
+`backend/.env` apunta por defecto a SQL Server Express:
+
+```env
+DATABASE_URL=mssql+pyodbc:///?odbc_connect=DRIVER%3DODBC+Driver+17+for+SQL+Server%3BSERVER%3Dlocalhost%5CSQLEXPRESS%3BDATABASE%3DClinix%3BTrusted_Connection%3Dyes%3BEncrypt%3Dno%3BTrustServerCertificate%3Dyes
+DEMO_SEED=false
+```
+
+Si tu instancia cambia, reemplaza `localhost%5CSQLEXPRESS` por el servidor real. Si usas usuario y contraseña, toma como base el ejemplo comentado en `backend/.env.example`.
 
 ---
 
@@ -362,6 +432,7 @@ Endpoint principales por módulo:
 | Habitaciones | `CRUD /habitaciones` |
 | Admisiones | `CRUD /admisiones`, `POST /alta` |
 | Dashboard | `GET /dashboard?periodo=hoy|semana|mes` |
+| Landing | `GET /public/landing`, `POST /public/landing/contact` |
 | CIE-10 | `GET /cie10?especialidad_id=X&q=texto` |
 | Auditoría | `GET /auditoria` |
 | Paneles | `GET /medico/mis-citas`, `GET /medico/mis-pacientes`, `GET /agenda/{medico_id}?fecha=`, `GET /enfermero/mis-pacientes` |
@@ -401,6 +472,7 @@ Endpoint principales por módulo:
 - [x] **Confirmación de cita** — Email al aprobar y convertir reserva en cita
 - [x] **Rechazo con motivo** — Email al rechazar una reserva con la observación del admin
 - [x] **Recordatorio automático** — APScheduler ejecuta tarea diaria a las 8:00 AM para citas del día siguiente
+- [x] **Landing conectado a SQL Server** — planes, métricas, testimonios, FAQ, comparativa y leads desde `/api/v1/public/landing`
 
 ## Pendiente
 

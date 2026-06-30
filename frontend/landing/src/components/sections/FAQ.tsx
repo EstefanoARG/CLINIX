@@ -1,36 +1,9 @@
 import { Box, Container, Typography } from '@mui/material';
-import { motion } from 'framer-motion';
 import * as Accordion from '@radix-ui/react-accordion';
-import { ChevronDown } from 'lucide-react';
-
-const faqData = [
-  {
-    question: '¿Los planes tienen compromiso de permanencia?',
-    answer: 'Sí, la suscripción a un plan tiene un periodo de permanencia para que podamos asegurarte los mejores resultados.',
-  },
-  {
-    question: '¿Cuáles son las modalidades de pago disponibles para los planes?',
-    answer: 'El pago de la suscripción es anual. Si lo deseas, también puedes contratar nuestro servicio de página web junto con tu Plan CLINIX.',
-  },
-  {
-    question: '¿Necesito conocimientos de cómputo para usar la plataforma de CLINIX?',
-    answer: 'La gestión de la agenda CLINIX y todas sus características es muy sencilla, no requiere instalación alguna ni la intervención de personal técnico.',
-  },
-  {
-    question: '¿Hay un límite de destinatarios a los que puedo enviar una campaña?',
-    answer: 'Sí. El límite de destinatarios se basa en el número de correos electrónicos o SMS que tienes disponibles al mes, no en los usuarios únicos.',
-  },
-  {
-    question: '¿Qué posición ocuparé con mi plan en los listados de CLINIX?',
-    answer: 'Tener un Plan CLINIX te permite posicionarte por delante de los usuarios con perfil gratuito.',
-  },
-  {
-    question: '¿Cómo puedo ver mis facturas?',
-    answer: 'Enviamos las facturas directamente a la dirección de correo asociada a tu perfil. Además, podrás acceder a todas ellas desde el apartado de facturación de tu perfil de CLINIX.',
-  },
-];
-
+import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+import type { FAQItem } from '../../types';
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -41,7 +14,13 @@ const itemVariants: Variants = {
   }),
 };
 
-export default function FAQ() {
+interface FAQProps {
+  items: FAQItem[];
+}
+
+export default function FAQ({ items }: FAQProps) {
+  if (items.length === 0) return null;
+
   return (
     <Box sx={{ bgcolor: '#F8FAFC', py: { xs: 8, md: 12 } }}>
       <Container maxWidth="md">
@@ -68,22 +47,16 @@ export default function FAQ() {
         </motion.div>
 
         <Accordion.Root type="single" collapsible>
-          {faqData.map((item, idx) => (
+          {items.map((item, idx) => (
             <motion.div
-              key={idx}
+              key={`${item.question}-${idx}`}
               custom={idx}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-40px' }}
               variants={itemVariants}
             >
-              <Box
-                component={Accordion.Item}
-                value={`item-${idx}`}
-                sx={{
-                  borderBottom: '1px solid #e2e8f0',
-                }}
-              >
+              <Box component={Accordion.Item} value={`item-${idx}`} sx={{ borderBottom: '1px solid #e2e8f0' }}>
                 <Accordion.Header>
                   <Accordion.Trigger
                     style={{
@@ -106,25 +79,13 @@ export default function FAQ() {
                     <ChevronDown
                       size={20}
                       className="accordion-chevron"
-                      style={{
-                        color: '#2563EB',
-                        flexShrink: 0,
-                        transition: 'transform 0.3s ease',
-                      }}
+                      style={{ color: '#2563EB', flexShrink: 0, transition: 'transform 0.3s ease' }}
                     />
                   </Accordion.Trigger>
                 </Accordion.Header>
-                <Accordion.Content
-                  className="accordion-content"
-                  style={{
-                    overflow: 'hidden',
-                  }}
-                >
+                <Accordion.Content className="accordion-content" style={{ overflow: 'hidden' }}>
                   <Box sx={{ pb: 3 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: '#475569', lineHeight: 1.7, fontSize: '0.95rem' }}
-                    >
+                    <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7, fontSize: '0.95rem' }}>
                       {item.answer}
                     </Typography>
                   </Box>
